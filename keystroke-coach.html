@@ -1,0 +1,1592 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Keystroke Coach</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⌨️</text></svg>">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=IBM+Plex+Mono:wght@400;500&family=Orbitron:wght@600;700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#E9EEF2;--panel:#F8FAFC;--line:#CAD3DD;--ink:#172230;--muted:#556375;
+  --accent:#1F5FD6;--accent-ink:#FFFFFF;--ok:#1E7F52;--bad:#C4342A;--badbg:#FBE1DE;--cur:#E0A200;
+  --ui:"Atkinson Hyperlegible",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#111922;--panel:#18222E;--line:#2D3B4B;--ink:#E3E9F0;--muted:#97A5B6;
+    --accent:#7EA6FF;--accent-ink:#0E1620;--ok:#56C992;--bad:#FF7A6E;--badbg:#3D1F1E;--cur:#F5C542;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#111922;--panel:#18222E;--line:#2D3B4B;--ink:#E3E9F0;--muted:#97A5B6;
+  --accent:#7EA6FF;--accent-ink:#0E1620;--ok:#56C992;--bad:#FF7A6E;--badbg:#3D1F1E;--cur:#F5C542;
+}
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--ui);font-size:17px;line-height:1.5}
+header{max-width:1020px;margin:0 auto;padding:24px 20px 10px}
+.topline{display:flex;flex-wrap:wrap;gap:12px 20px;align-items:flex-end;justify-content:space-between;margin-bottom:14px}
+.who{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center}
+#whoBtn{font-family:"Orbitron",var(--ui);letter-spacing:.05em}
+#saveStatus{font-size:.85rem}
+.gate{position:fixed;inset:0;z-index:50;background:rgba(3,8,15,.8);display:grid;place-items:center;padding:20px;overflow-y:auto}
+.gatecard{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:26px;width:100%;max-width:560px;box-shadow:0 20px 60px rgba(0,0,0,.45)}
+.gatecard h2{font-family:"Orbitron",var(--ui);font-size:1.5rem;letter-spacing:.03em}
+.plist{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;margin:14px 0 18px}
+.pbtn{font:inherit;text-align:left;background:#01070D;color:#CFEFF7;border:1px solid #1C5566;border-radius:12px;padding:12px 14px;cursor:pointer;line-height:1.35}
+.pbtn:hover,.pbtn:focus-visible{border-color:#29E6FF;box-shadow:0 0 0 1px #29E6FF,0 0 18px rgba(41,230,255,.35);outline:none}
+.pbtn b{display:block;font-family:"Orbitron",var(--mono);font-size:1.7rem;color:#29E6FF;letter-spacing:.08em}
+.pbtn span{font-size:.82rem;color:#8FB7C2}
+#newIni{font-family:"Orbitron",var(--mono);text-transform:uppercase;letter-spacing:.2em;width:7.5em;font-size:1.2rem}
+.folderbox{border-top:1px solid var(--line);margin-top:18px;padding-top:4px}
+.gamewrap{background:#01070D;border-radius:12px;overflow:hidden;border:1px solid #1C5566}
+#game{display:block;width:100%;outline:none;cursor:pointer}
+#game:focus-visible{outline:3px solid #29E6FF;outline-offset:-3px}
+tr.me td{font-weight:700;color:var(--accent)}
+h1{font-size:1.9rem;line-height:1.15;margin:0;letter-spacing:-.01em}
+h1 small{display:block;font-size:1rem;font-weight:400;color:var(--muted);margin-top:4px}
+h2{font-size:1.25rem;margin:0 0 10px}
+h3{font-size:1.05rem;margin:18px 0 6px}
+nav{display:flex;flex-wrap:wrap;gap:4px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:4px}
+nav button{font:inherit;font-weight:700;font-size:.95rem;border:0;background:transparent;color:var(--muted);padding:8px 14px;border-radius:9px;cursor:pointer}
+nav button:hover{color:var(--ink)}
+nav button[aria-selected="true"]{background:var(--accent);color:var(--accent-ink)}
+main{max-width:1020px;margin:0 auto;padding:12px 20px 56px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:22px;margin-bottom:16px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.grid2 .panel{margin-bottom:0}
+.grid2+.panel{margin-top:16px}
+@media (max-width:780px){.grid2{grid-template-columns:1fr}}
+.controls{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:center;margin:0 0 14px}
+label{font-size:.92rem;color:var(--muted)}
+.muted{color:var(--muted)}
+p{margin:0 0 12px}
+select,input[type=text],input[type=number],textarea{font:inherit;font-size:1rem;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:9px;padding:8px 10px;max-width:100%}
+textarea{width:100%;resize:vertical;line-height:1.55}
+input[type=text]{min-width:0}
+.btn{font:inherit;font-weight:700;font-size:.95rem;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:9px;padding:8px 14px;cursor:pointer;display:inline-block}
+.btn:hover{border-color:var(--accent)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+button:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-visible,.typebox:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:9px;overflow:hidden}
+.seg button{font:inherit;font-weight:700;font-size:.92rem;border:0;border-right:1px solid var(--line);background:var(--bg);color:var(--muted);padding:8px 12px;cursor:pointer}
+.seg button:last-child{border-right:0}
+.seg button.on{background:var(--ink);color:var(--panel)}
+.live{display:flex;gap:34px;align-items:baseline;margin:4px 0 8px;min-height:3rem}
+.live div{display:flex;flex-direction:column}
+.live b{font-family:var(--mono);font-weight:500;font-size:2.1rem;line-height:1.1}
+.live span{color:var(--muted);font-size:.85rem}
+.typebox{position:relative;font-family:var(--mono);font-size:1.6rem;line-height:1.95;height:calc(1.95em * 3 + 12px);overflow:hidden;padding:6px 4px;border-radius:10px;white-space:pre-wrap;word-break:break-word;color:var(--muted);cursor:text;border:2px dashed transparent}
+.typebox:not(:focus){border-color:var(--line)}
+.typebox:not(:focus) + .hint{color:var(--accent);font-weight:700}
+.hint{font-size:.92rem;color:var(--muted);margin:8px 0 0}
+.ch.ok{color:var(--ink)}
+.ch.bad{color:var(--bad);background:var(--badbg);border-radius:3px}
+.ch.cur{box-shadow:inset 0 -4px 0 var(--cur)}
+@media (prefers-reduced-motion:no-preference){.typebox:focus .ch.cur{animation:blink 1.1s steps(2,start) infinite}}
+@keyframes blink{50%{box-shadow:inset 0 -4px 0 transparent}}
+.res{display:flex;flex-wrap:wrap;gap:12px 40px;align-items:center}
+.big{display:flex;flex-direction:column}
+.big b{font-family:var(--mono);font-weight:500;font-size:4rem;line-height:1}
+.big span{color:var(--muted)}
+.facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px 28px;margin:0;flex:1;min-width:240px}
+.facts dt{color:var(--muted);font-size:.85rem}
+.facts dd{margin:0;font-family:var(--mono);font-size:1.3rem}
+.tips{margin:0 0 16px;padding-left:1.2em;max-width:72ch}
+.tips li{margin-bottom:6px}
+.prompt{font-family:var(--mono);font-size:1.9rem;line-height:1.4;margin:6px 0 14px;overflow-wrap:anywhere}
+.prompt.def{font-family:var(--ui);font-size:1.35rem;line-height:1.5;max-width:60ch}
+.card input[type=text],#skillArea input[type=text]{width:100%;font-family:var(--mono);font-size:1.25rem;padding:10px 12px}
+.fb{margin-top:10px;min-height:1.6em}
+.fb .yes{color:var(--ok);font-weight:700}
+.fb .no{color:var(--bad);font-weight:700}
+.said{font-family:var(--mono);font-size:1.15rem;line-height:1.8}
+.w.hit{color:var(--ok)}
+.w.miss{color:var(--bad);text-decoration:underline wavy;text-underline-offset:4px}
+.tablewrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:.95rem}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line)}
+th{color:var(--muted);font-weight:700;font-size:.85rem}
+td.mono{font-family:var(--mono)}
+td .btn{padding:4px 10px;font-size:.85rem}
+.statrow{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:14px;margin-bottom:18px}
+.stat b{display:block;font-family:var(--mono);font-weight:500;font-size:2rem;line-height:1.2}
+.stat span{color:var(--muted);font-size:.88rem}
+.goalbar{flex:1;min-width:160px;height:12px;background:var(--bg);border:1px solid var(--line);border-radius:99px;overflow:hidden}
+.goalbar div{height:100%;width:0;background:var(--accent);transition:width .4s}
+#chart{width:100%;height:260px;display:block}
+.legend{display:flex;gap:20px;font-size:.9rem;margin-top:8px}
+.legend i{display:inline-block;width:18px;height:4px;border-radius:2px;vertical-align:middle;margin-right:6px}
+.kbdwrap{overflow-x:auto;padding-bottom:4px}
+.krow{display:flex;gap:6px;margin-bottom:6px}
+.key{flex:0 0 44px;height:44px;border-radius:8px;display:grid;place-items:center;font-family:var(--mono);font-size:1rem;color:#fff;border:1px solid transparent}
+.key.none{background:var(--bg);color:var(--muted);border-color:var(--line)}
+.key.space{flex-basis:300px}
+code{font-family:var(--mono);background:var(--bg);padding:1px 6px;border-radius:5px;font-size:.92em}
+[hidden]{display:none !important}
+@media (max-width:600px){
+  .typebox{font-size:1.25rem}
+  .big b{font-size:3rem}
+  .panel{padding:16px}
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="topline">
+  <h1>Keystroke Coach<small>Type faster, listen better, and learn new material while you practice.</small></h1>
+  <div class="who">
+    <button class="btn" id="whoBtn">Choose player</button>
+    <button class="btn" id="folderHdrBtn" hidden>Connect save folder</button>
+    <span class="muted" id="saveStatus"></span>
+  </div>
+  </div>
+  <nav role="tablist" aria-label="Practice modes">
+    <button role="tab" data-tab="test" aria-selected="true">Speed test</button>
+    <button role="tab" data-tab="game" aria-selected="false">Grid game</button>
+    <button role="tab" data-tab="audio" aria-selected="false">Audio dictation</button>
+    <button role="tab" data-tab="shorthand" aria-selected="false">Shorthand</button>
+    <button role="tab" data-tab="skills" aria-selected="false">Learn a skill</button>
+    <button role="tab" data-tab="drills" aria-selected="false">Drills</button>
+    <button role="tab" data-tab="progress" aria-selected="false">Progress</button>
+  </nav>
+</header>
+
+<main>
+<!-- SPEED TEST -->
+<section id="tab-test">
+  <div class="panel">
+    <div class="controls">
+      <label>Text
+        <select id="testSource">
+          <option value="words">Common words</option>
+          <option value="sentences">Sentences</option>
+          <option value="symbols">Numbers and symbols</option>
+          <option value="secplus">Security+ vocabulary</option>
+          <option value="deck">My active deck</option>
+        </select>
+      </label>
+      <div class="seg" id="testDur" role="group" aria-label="Test length">
+        <button data-t="15">15s</button><button data-t="30">30s</button><button data-t="60" class="on">60s</button><button data-t="120">2 min</button>
+      </div>
+      <button class="btn" id="testRestart">Restart (Esc)</button>
+    </div>
+    <div class="live" id="testLive"></div>
+    <div class="typebox" id="testBox"></div>
+    <p class="hint">Click the text and start typing. The timer starts on your first key. Backspace fixes mistakes.</p>
+  </div>
+  <div class="panel" id="testResults" hidden></div>
+</section>
+
+<!-- AUDIO -->
+<section id="tab-audio" hidden>
+  <div class="panel">
+    <h2>Listen and type</h2>
+    <p class="muted">Press Play, listen, then type what you heard and press Enter. Each set is 5 sentences. Punctuation and capitals don't count against you.</p>
+    <div class="controls">
+      <label>Text
+        <select id="audSource">
+          <option value="sentences">Everyday sentences</option>
+          <option value="secplus">Security+ definitions</option>
+          <option value="deck">My active deck</option>
+        </select>
+      </label>
+      <label>Voice <select id="audVoice"></select></label>
+      <label>Speech speed <input type="range" id="audRate" min="0.6" max="1.6" step="0.1" value="1"> <output id="audRateOut">1.0×</output></label>
+    </div>
+    <div class="controls">
+      <button class="btn primary" id="audPlay">Play sentence 1 of 5</button>
+      <button class="btn" id="audReplay" disabled>Replay</button>
+      <button class="btn" id="audReveal" disabled>Show text</button>
+    </div>
+    <textarea id="audInput" rows="3" placeholder="Type what you hear, then press Enter" disabled spellcheck="false"></textarea>
+    <div id="audFeedback" class="fb" aria-live="polite"></div>
+  </div>
+  <div class="panel" id="audResults" hidden></div>
+</section>
+
+<!-- SHORTHAND -->
+<section id="tab-shorthand" hidden>
+  <div class="grid2">
+    <div class="panel card">
+      <h2>Shorthand drill</h2>
+      <div class="controls">
+        <label>Direction
+          <select id="shDir">
+            <option value="toAbbr">See the word, type the shorthand</option>
+            <option value="toFull">See the shorthand, type the word</option>
+          </select>
+        </label>
+        <button class="btn primary" id="shStart">Start 15-card drill</button>
+      </div>
+      <div id="shCard" hidden>
+        <p class="muted" id="shCount"></p>
+        <div class="prompt" id="shPrompt"></div>
+        <input type="text" id="shAnswer" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Type and press Enter">
+        <div id="shFeedback" class="fb" aria-live="polite"></div>
+      </div>
+      <div id="shResults" hidden></div>
+    </div>
+    <div class="panel">
+      <h2>Shorthand pad</h2>
+      <p class="muted">Write here using your shorthand. When you press Space or Enter after a shorthand, it expands to the full text.</p>
+      <label><input type="checkbox" id="padOn" checked> Expand as I type</label>
+      <textarea id="pad" rows="8" spellcheck="true" placeholder="Try typing: pls send info abt the mtg asap "></textarea>
+      <p class="muted" id="padStats">Keystrokes saved: 0</p>
+    </div>
+  </div>
+  <div class="panel">
+    <h2>Your shorthand list</h2>
+    <div class="controls">
+      <input type="text" id="shNewAbbr" placeholder="Shorthand, like mtg" aria-label="New shorthand">
+      <input type="text" id="shNewFull" placeholder="Full text, like meeting" aria-label="Full text">
+      <button class="btn primary" id="shAdd">Add shorthand</button>
+      <button class="btn" id="shResetList">Restore default list</button>
+    </div>
+    <div class="tablewrap"><table id="shTable"></table></div>
+  </div>
+</section>
+
+<!-- LEARN A SKILL -->
+<section id="tab-skills" hidden>
+  <div class="panel">
+    <h2>Learn while you type</h2>
+    <p class="muted">Add notes for anything you're learning: vocabulary, commands, exam terms, a new language. Put one item per line as <code>term: definition</code>. Then copy it for speed, or recall it from memory.</p>
+    <div class="controls">
+      <label>Deck <select id="deckSel"></select></label>
+      <button class="btn" id="deckEdit">Edit deck</button>
+      <button class="btn" id="deckNew">New deck</button>
+      <button class="btn" id="deckDelete">Delete deck</button>
+      <span class="muted" id="deckMastery"></span>
+    </div>
+    <div id="deckEditor" hidden>
+      <div class="controls"><input type="text" id="deckName" placeholder="Deck name, like Spanish verbs" aria-label="Deck name" style="flex:1"></div>
+      <textarea id="deckText" rows="10" placeholder="firewall: A device that filters network traffic by rules&#10;hola: hello&#10;ls -la: List all files with details"></textarea>
+      <div class="controls" style="margin-top:10px"><button class="btn primary" id="deckSave">Save deck</button><button class="btn" id="deckCancel">Cancel</button><span class="muted" id="deckMsg"></span></div>
+    </div>
+    <div class="controls">
+      <button class="btn primary" data-mode="copy">Copy practice</button>
+      <button class="btn primary" data-mode="recall">Recall: see definition, type term</button>
+      <button class="btn primary" data-mode="reverse">Recall: see term, type definition</button>
+    </div>
+  </div>
+  <div class="panel" id="skillArea" hidden></div>
+</section>
+
+<!-- DRILLS -->
+<section id="tab-drills" hidden>
+  <div class="panel">
+    <h2>Targeted drills</h2>
+    <p id="weakInfo" class="muted"></p>
+    <div class="controls">
+      <button class="btn primary" id="drillWeak">Weak-key drill</button>
+      <button class="btn" id="drillHome">Home row warm-up</button>
+      <button class="btn" id="drillRestart">Restart (Esc)</button>
+    </div>
+    <div class="live" id="drillLive"></div>
+    <div class="typebox" id="drillBox"></div>
+    <p class="hint">Click the text and start typing. Aim for clean, even keystrokes rather than speed.</p>
+  </div>
+  <div class="panel" id="drillResults" hidden></div>
+</section>
+
+<!-- GAME -->
+<section id="tab-game" hidden>
+  <div class="panel">
+    <div class="controls">
+      <label>Words
+        <select id="gSource">
+          <option value="words">Common words</option>
+          <option value="secplus">Security+ terms</option>
+          <option value="deck">My active deck</option>
+        </select>
+      </label>
+      <label>Difficulty
+        <select id="gDiff"><option value="0.8">Easy</option><option value="1" selected>Normal</option><option value="1.3">Hard</option></select>
+      </label>
+      <label><input type="checkbox" id="gSound" checked> Sound</label>
+      <button class="btn" id="gPause">Pause (Esc)</button>
+    </div>
+    <div class="gamewrap"><canvas id="game" tabindex="0" aria-label="Grid Defense game. Type the word on each attacking program to destroy it."></canvas></div>
+    <p class="hint">Click the game, then press Enter. Type a word to lock on and fire. Backspace drops a lock. Enter fires an EMP when you have a charge. Esc pauses.</p>
+  </div>
+  <div class="grid2">
+    <div class="panel"><h2>High scores on this computer</h2><div class="tablewrap"><table id="leaderboard"></table></div></div>
+    <div class="panel" id="gameResults">
+      <h2>How to play</h2>
+      <p>Rogue programs ride light cycles toward your firewall. Each one carries a word. Type the word to lock on and fire a disc that derezzes it.</p>
+      <p>Clean streaks build your combo. Every 10 in a row raises your score multiplier, and every 20 earns an EMP that clears the grid. Every fifth wave brings a rootkit with a longer phrase. Beat it to restore a shield.</p>
+      <p class="muted">Your game keystrokes feed the same weak-key stats as the speed test, so playing still sharpens your drills.</p>
+    </div>
+  </div>
+</section>
+
+<!-- PROGRESS -->
+<section id="tab-progress" hidden>
+  <div class="panel">
+    <div class="statrow" id="statRow"></div>
+    <div class="controls" style="margin:0">
+      <label>Speed goal <input type="number" id="goal" min="10" max="250" style="width:5.5em"> WPM</label>
+      <div class="goalbar" aria-hidden="true"><div id="goalFill"></div></div>
+      <span class="muted" id="goalText"></span>
+    </div>
+  </div>
+  <div class="panel">
+    <h2>Speed and accuracy over time</h2>
+    <canvas id="chart"></canvas>
+    <div class="legend muted"><span><i style="background:var(--accent)"></i>Speed (WPM, left axis)</span><span><i style="background:var(--ok)"></i>Accuracy (80–100%, right axis)</span></div>
+  </div>
+  <div class="panel">
+    <h2>Key accuracy</h2>
+    <p class="muted">Red keys are the ones you miss most. Grey keys need more practice data.</p>
+    <div class="kbdwrap"><div id="kbd"></div></div>
+  </div>
+  <div class="panel">
+    <h2>Coaching</h2>
+    <ul class="tips" id="coachList"></ul>
+  </div>
+  <div class="panel">
+    <h2>Recent sessions</h2>
+    <div class="tablewrap"><table id="histTable"></table></div>
+    <div class="controls" style="margin:14px 0 0">
+      <button class="btn" id="exportBtn">Export progress</button>
+      <label class="btn" style="color:var(--ink)">Import progress<input type="file" id="importFile" accept=".json,application/json" hidden></label>
+      <button class="btn" id="resetBtn">Reset progress</button>
+    </div>
+  </div>
+</section>
+</main>
+
+<div id="profileGate" class="gate" role="dialog" aria-modal="true" aria-labelledby="gateTitle" hidden>
+  <div class="gatecard">
+    <h2 id="gateTitle">Who's playing?</h2>
+    <p class="muted">Pick your profile, or enter your initials to create one.</p>
+    <div id="profileList" class="plist"></div>
+    <div class="controls">
+      <input type="text" id="newIni" maxlength="3" placeholder="JT" aria-label="Your initials" autocomplete="off" spellcheck="false">
+      <button class="btn primary" id="newIniBtn">Create profile</button>
+      <button class="btn" id="gateCancel" hidden>Cancel</button>
+    </div>
+    <p id="gateMsg" class="fb"></p>
+    <div class="folderbox">
+      <h3>Save location</h3>
+      <p id="folderStatus" class="muted"></p>
+      <button class="btn" id="folderBtn">Choose save folder</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ---------- Content ---------- */
+const WORDS = `the be to of and a in that have it for not on with he as you do at this but his by from they we say her she or an will my one all would there their what so up out if about who get which go me when make can like time no just him know take people into year your good some could them see other than then now look only come its over think also back after use two how our work first well way even new want because any these give day most us is was are were been has had did said made find here thing many where right still own last long great little world before life should through between down never help same house home under while place need might again every start show hand school part small number off end always point found name very old keep water close study learn write read open follow line move page type speed skill practice focus steady finger key screen note simple quick level test goal habit better during early later often together question answer system network message account backup update secure login reset driver laptop printer family friend morning evening travel window paper light music voice listen speak meeting report record check clear`.split(/\s+/);
+
+const SENTENCES = [
+  "Please send the updated schedule before the meeting starts on Monday.",
+  "A steady rhythm matters more than short bursts of speed.",
+  "The router lost power twice, so we checked the logs for errors.",
+  "Keep your eyes on the screen and let your fingers find the keys.",
+  "She saved the file, closed the laptop, and walked to the car.",
+  "Small daily practice adds up faster than one long session each week.",
+  "The customer called back to confirm that the fix worked.",
+  "Our group meets on Thursday evening and again on Sunday morning.",
+  "Never write a password on paper; store it in a password manager.",
+  "The printer in the back office needs a new toner cartridge.",
+  "Check the backup before you install any major update.",
+  "He read the question twice before he typed his answer.",
+  "A clear note today saves a long search next month.",
+  "The new laptop arrived with the wrong charger in the box.",
+  "We moved the meeting to the main hall because more people came.",
+  "Turn on two-step login for every account that offers it.",
+  "The weather was clear, so they walked instead of driving.",
+  "Practice the hard words slowly, then bring them up to speed.",
+  "The volunteer team set up chairs and tested the microphones.",
+  "Every expert was once a beginner who kept going."
+];
+
+const SECPLUS = [
+  ["CIA triad","Confidentiality, integrity, and availability, the core goals of security"],
+  ["Least privilege","Giving users only the access they need to do their job"],
+  ["Phishing","A fraudulent message that tricks people into revealing data or clicking links"],
+  ["MFA","Multifactor authentication that uses two or more different factor types"],
+  ["Hashing","A one-way function that makes a fixed-length digest to verify integrity"],
+  ["Symmetric encryption","One shared key both encrypts and decrypts the data"],
+  ["Asymmetric encryption","A public and private key pair used for encryption and signatures"],
+  ["Zero trust","Never trust by default and verify every request"],
+  ["SIEM","A system that collects and correlates logs for security monitoring"],
+  ["Ransomware","Malware that encrypts data and demands payment"],
+  ["Vulnerability","A weakness that an attacker could exploit"],
+  ["Threat actor","A person or group that carries out an attack"],
+  ["Risk","The likelihood and impact of a threat exploiting a vulnerability"],
+  ["Firewall","A device or program that filters traffic based on rules"],
+  ["Social engineering","Manipulating people into breaking normal security practices"],
+  ["Salting","Adding random data to a password before it is hashed"],
+  ["Non-repudiation","Proof that a person cannot deny an action they took"],
+  ["Incident response","The process to prepare, detect, contain, eradicate, recover, and learn"],
+  ["VPN","An encrypted tunnel across an untrusted network"],
+  ["Honeypot","A decoy system built to attract and study attackers"]
+];
+const SECPLUS_TEXT = SECPLUS.map(([t,d]) => `${t}: ${d}`).join("\n");
+
+const HOME = ["as","dad","sad","lad","fall","flask","ask","lass","alas","salad","glass","flag","half","gash","hall","jag","lag","shall","dash","ash","gala","flash","slash","add","all","fad","had","has","lash","sash","hash","gag","glad","jazz"];
+
+const DEFAULT_SH = {
+  "bc":"because","w/":"with","w/o":"without","b4":"before","abt":"about","info":"information",
+  "mtg":"meeting","pls":"please","thx":"thanks","ty":"thank you","ppl":"people","msg":"message",
+  "btwn":"between","govt":"government","imp":"important","approx":"approximately",
+  "asap":"as soon as possible","fyi":"for your information","btw":"by the way","mgmt":"management",
+  "pw":"password","acct":"account","dept":"department","req":"request","config":"configuration",
+  "env":"environment","auth":"authentication","tmrw":"tomorrow","wk":"week","yr":"year"
+};
+
+const rnd = (a,b) => a + Math.floor(Math.random()*(b-a+1));
+const pick = a => a[Math.floor(Math.random()*a.length)];
+const SYM = [
+  () => `192.168.${rnd(0,9)}.${rnd(2,254)}`,
+  () => `port ${pick([22,53,80,443,3389,8080])}`,
+  () => `$${rnd(5,999)}.${String(rnd(0,99)).padStart(2,"0")}`,
+  () => `${rnd(1,12)}/${rnd(1,28)}/2026`,
+  () => `(${rnd(2,9)} + ${rnd(2,9)}) * ${rnd(2,9)}`,
+  () => `${rnd(10,99)}%`,
+  () => `#${rnd(100,999)}`,
+  () => `v${rnd(1,4)}.${rnd(0,9)}.${rnd(0,20)}`,
+  () => `ID-${rnd(1000,9999)}`,
+  () => `x = y / ${rnd(2,9)};`,
+  () => `[${pick(["ok","fail","warn"])}]`,
+  () => pick(["ls -la /var/log","cd ~/Documents","ping -c 4 8.8.8.8","git status","sudo apt update"]),
+  () => `${rnd(1,12)}:${String(rnd(0,59)).padStart(2,"0")} ${pick(["AM","PM"])}`
+];
+
+/* ---------- Helpers ---------- */
+const $ = s => document.querySelector(s);
+const $$ = s => [...document.querySelectorAll(s)];
+const shuffle = a => { a = [...a]; for (let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; };
+const mean = a => a.reduce((x,y)=>x+y,0)/a.length;
+const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const fmtTime = s => { s=Math.max(0,Math.round(s)); return Math.floor(s/60)+":"+String(s%60).padStart(2,"0"); };
+const norm = s => s.toLowerCase().replace(/[’‘]/g,"'").replace(/[^\p{L}\p{N}\s'&@#\/+%$.-]/gu," ").replace(/(\S)[.]+(\s|$)/g,"$1$2").replace(/\s+/g," ").trim();
+const words = s => norm(s).split(" ").filter(Boolean);
+const keyLabel = k => k === " " ? "space" : k;
+
+function lev(a,b){
+  const d = Array.from({length:a.length+1},(_,i)=>[i]);
+  for (let j=1;j<=b.length;j++) d[0][j]=j;
+  for (let i=1;i<=a.length;i++) for (let j=1;j<=b.length;j++)
+    d[i][j]=Math.min(d[i-1][j]+1,d[i][j-1]+1,d[i-1][j-1]+(a[i-1]===b[j-1]?0:1));
+  return d[a.length][b.length];
+}
+function alignWords(a,b){
+  const m=a.length,n=b.length, dp=Array.from({length:m+1},()=>new Array(n+1).fill(0));
+  for (let i=m-1;i>=0;i--) for (let j=n-1;j>=0;j--)
+    dp[i][j] = a[i]===b[j] ? dp[i+1][j+1]+1 : Math.max(dp[i+1][j],dp[i][j+1]);
+  const hit=new Array(m).fill(false); let i=0,j=0;
+  while(i<m && j<n){ if(a[i]===b[j]){hit[i]=true;i++;j++;} else if(dp[i+1][j]>=dp[i][j+1]) i++; else j++; }
+  return {hit, matched:dp[0][0]};
+}
+
+/* ---------- Profiles and saving (browser storage plus an optional folder on this computer) ---------- */
+const blankData = () => ({sessions:[], keys:{}, shorthand:{...DEFAULT_SH}, decks:{"Security+ starter":SECPLUS_TEXT},
+  activeDeck:"Security+ starter", deckStats:{}, goal:60, game:{best:0, bestWave:0, bestWpm:0, plays:0}});
+let data = blankData();
+let profile = null;
+const LS = {
+  get(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } },
+  set(k,v){ try{ localStorage.setItem(k,v); return true; }catch(e){ return false; } },
+  keys(){ try{ return Object.keys(localStorage); }catch(e){ return []; } }
+};
+const idb = {
+  open(){ return new Promise((res,rej)=>{ const r=indexedDB.open("keystroke-coach",1); r.onupgradeneeded=()=>r.result.createObjectStore("kv"); r.onsuccess=()=>res(r.result); r.onerror=()=>rej(r.error); }); },
+  async get(k){ try{ const db=await this.open(); return await new Promise(res=>{ const q=db.transaction("kv").objectStore("kv").get(k); q.onsuccess=()=>res(q.result); q.onerror=()=>res(undefined); }); }catch(e){ return undefined; } },
+  async set(k,v){ try{ const db=await this.open(); await new Promise(res=>{ const t=db.transaction("kv","readwrite"); t.objectStore("kv").put(v,k); t.oncomplete=res; t.onerror=res; }); }catch(e){} }
+};
+const fsSupported = typeof window.showDirectoryPicker === "function";
+let dirHandle=null, dirReady=false;
+async function initFolder(){
+  if (!fsSupported) return;
+  dirHandle = await idb.get("dir") || null;
+  if (dirHandle){ try{ dirReady = (await dirHandle.queryPermission({mode:"readwrite"}))==="granted"; }catch(e){ dirReady=false; } }
+}
+async function chooseFolder(){
+  try{
+    dirHandle = await window.showDirectoryPicker({id:"keystroke-coach", mode:"readwrite"});
+    await idb.set("dir", dirHandle); dirReady=true; return true;
+  }catch(e){
+    if (e && e.name!=="AbortError") $("#gateMsg").textContent="The browser blocked that folder. Put keystroke-coach.html in its own folder, like Documents/Keystroke Coach, and choose that folder.";
+    return false;
+  }
+}
+async function ensureFolder(){
+  if (!dirHandle) return false;
+  if (dirReady) return true;
+  try{ dirReady = (await dirHandle.requestPermission({mode:"readwrite"}))==="granted"; }catch(e){ dirReady=false; }
+  return dirReady;
+}
+const profDir = () => dirHandle.getDirectoryHandle("keystroke-coach-profiles", {create:true});
+async function listFolderProfiles(){
+  const out={}; if (!dirReady) return out;
+  try{
+    const d=await profDir();
+    for await (const [name,h] of d.entries()){
+      const m=name.match(/^([A-Z]{2,3})\.json$/);
+      if (m && h.kind==="file"){ try{ out[m[1]]=JSON.parse(await (await h.getFile()).text()); }catch(e){} }
+    }
+  }catch(e){}
+  return out;
+}
+async function readFolderProfile(ini){
+  try{ const d=await profDir(); const h=await d.getFileHandle(ini+".json"); return JSON.parse(await (await h.getFile()).text()); }catch(e){ return null; }
+}
+async function writeFolderProfile(ini,obj){
+  const d=await profDir(); const h=await d.getFileHandle(ini+".json",{create:true});
+  const w=await h.createWritable(); await w.write(JSON.stringify(obj,null,2)); await w.close();
+}
+function localProfiles(){
+  const out={};
+  for (const k of LS.keys()){ const m=k.match(/^kc_profile_([A-Z]{2,3})$/); if (m){ try{ out[m[1]]=JSON.parse(LS.get(k)); }catch(e){} } }
+  return out;
+}
+async function allProfiles(){
+  const out=localProfiles(), f=await listFolderProfiles();
+  for (const [k,v] of Object.entries(f)) if (!out[k] || (v.updated||0)>(out[k].updated||0)) out[k]=v;
+  if (profile) out[profile]={initials:profile, updated:Date.now(), data};
+  return out;
+}
+const profileObj = () => ({app:"keystroke-coach", version:2, initials:profile, updated:Date.now(), data});
+let saveTimer=null;
+function save(){ clearTimeout(saveTimer); saveTimer=setTimeout(persistNow, 500); }
+async function persistNow(){
+  clearTimeout(saveTimer); saveTimer=null;
+  if (!profile) return;
+  const obj=profileObj();
+  LS.set("kc_profile_"+profile, JSON.stringify(obj));
+  let folderOk=false;
+  if (dirHandle && dirReady){ try{ await writeFolderProfile(profile,obj); folderOk=true; }catch(e){} }
+  renderSaveStatus(folderOk);
+}
+function renderSaveStatus(folderOk){
+  const t=new Date().toLocaleTimeString([], {hour:"numeric", minute:"2-digit"});
+  $("#saveStatus").textContent = folderOk ? `Saved to folder at ${t}`
+    : (dirHandle && !dirReady) ? `Saved in browser at ${t}. Reconnect the folder to save files there.`
+    : fsSupported ? `Saved in browser at ${t}. Connect a folder to save profile files.`
+    : `Saved in this browser at ${t}`;
+  const b=$("#folderHdrBtn");
+  b.hidden = !fsSupported || (dirHandle && dirReady);
+  b.textContent = dirHandle ? "Reconnect folder" : "Connect save folder";
+}
+document.addEventListener("visibilitychange", () => { if (document.hidden && profile) persistNow(); });
+window.addEventListener("pagehide", () => { if (profile) LS.set("kc_profile_"+profile, JSON.stringify(profileObj())); });
+function legacyData(){
+  try{
+    if (LS.get("kc_migrated") || !LS.get("kc_sessions")) return null;
+    const d={};
+    ["sessions","keys","shorthand","decks","activeDeck","deckStats","goal"].forEach(k => { const v=LS.get("kc_"+k); if (v!=null) d[k]=JSON.parse(v); });
+    return d;
+  }catch(e){ return null; }
+}
+
+const SHIFT = {"!":"1","@":"2","#":"3","$":"4","%":"5","^":"6","&":"7","*":"8","(":"9",")":"0","_":"-","+":"=","{":"[","}":"]",":":";",'"':"'","<":",",">":".","?":"/","~":"`","|":"\\"};
+const baseKey = c => { const l=c.toLowerCase(); return SHIFT[l] || l; };
+function recordKey(map,c,ok){ const k=baseKey(c); const s=map[k]||(map[k]={n:0,e:0}); s.n++; if(!ok) s.e++; }
+function weakKeys(){
+  return Object.entries(data.keys)
+    .filter(([k,s]) => s.n>=8 && s.e/s.n>0.03)
+    .sort((a,b) => b[1].e/b[1].n - a[1].e/a[1].n)
+    .slice(0,6).map(([k]) => k);
+}
+function recordSession(r){
+  data.sessions.push({d:Date.now(), mode:r.mode, wpm:r.wpm ?? null, acc:r.acc, secs:r.secs});
+  if (data.sessions.length>1000) data.sessions.splice(0, data.sessions.length-1000);
+  save("sessions");
+}
+
+/* ---------- Deck parsing ---------- */
+function parseDeck(text){
+  return (text||"").split(/\r?\n/).map(l=>l.trim()).filter(Boolean).map(l=>{
+    const m = l.match(/^(.+?)\s*(?::|\t| - | – | = )\s*(.+)$/);
+    return m ? {term:m[1].trim(), def:m[2].trim()} : {term:l, def:""};
+  });
+}
+const activeDeckItems = () => parseDeck(data.decks[data.activeDeck]);
+const itemText = it => it.def ? `${it.term}: ${it.def.replace(/[.\s]+$/,"")}.` : it.term;
+
+/* ---------- Text sources ---------- */
+const SRC = {
+  words: () => Array.from({length:20}, () => pick(WORDS)).join(" "),
+  sentences: () => pick(SENTENCES),
+  symbols: () => Array.from({length:6}, () => pick(SYM)()).join(" "),
+  secplus: () => { const [t,d]=pick(SECPLUS); return `${t}: ${d}.`; },
+  deck: () => { const it=activeDeckItems(); return it.length ? itemText(pick(it)) : pick(SENTENCES); }
+};
+
+/* ---------- Typing engine ---------- */
+class Typer {
+  constructor(box, live, onDone){
+    this.box=box; this.live=live; this.onDone=onDone;
+    box.tabIndex=0; box.setAttribute("role","textbox"); box.setAttribute("aria-label","Typing area");
+    box.addEventListener("keydown", e => this.key(e));
+  }
+  load(text, {timeLimit=0, extend=null, mode="Test"}={}){
+    clearInterval(this.iv);
+    Object.assign(this,{text,pos:0,typed:[],net:0,total:0,correct:0,t0:null,done:false,timeLimit,extend,mode,sess:{},cur:-1});
+    this.box.textContent=""; this.spans=[]; this.append(text);
+    this.box.scrollTop=0; this.lh=parseFloat(getComputedStyle(this.box).lineHeight)||40;
+    this.mark(); this.updateLive();
+  }
+  append(t){
+    const f=document.createDocumentFragment();
+    for (const c of t){ const s=document.createElement("span"); s.className="ch"; s.textContent=c; f.appendChild(s); this.spans.push(s); }
+    this.box.appendChild(f);
+  }
+  mark(){
+    if (this.cur>=0 && this.spans[this.cur]) this.spans[this.cur].classList.remove("cur");
+    this.cur=this.pos; const s=this.spans[this.pos]; if(!s) return;
+    s.classList.add("cur");
+    const b=this.box, top=s.offsetTop;
+    if (top > b.scrollTop + this.lh*1.5) b.scrollTop = top - this.lh + 6;
+    else if (top < b.scrollTop) b.scrollTop = Math.max(0, top - this.lh + 6);
+  }
+  elapsed(){ return this.t0 ? (performance.now()-this.t0)/1000 : 0; }
+  stats(){
+    const secs = (this.done && this.timeLimit) ? this.timeLimit : Math.max(this.elapsed(), 0.001);
+    const min = secs/60;
+    return { wpm:Math.round(this.net/5/min), raw:Math.round(this.pos/5/min),
+      acc: this.total ? Math.round(this.correct/this.total*1000)/10 : 100,
+      errs: this.total-this.correct, secs: Math.round(secs) };
+  }
+  updateLive(){
+    const el=this.elapsed(), st=this.stats(), show=el>1;
+    const time = this.timeLimit ? fmtTime(this.timeLimit - el) : fmtTime(el);
+    this.live.innerHTML = `<div><b>${show?st.wpm:"–"}</b><span>WPM</span></div><div><b>${show?st.acc+"%":"–"}</b><span>accuracy</span></div><div><b>${time}</b><span>${this.timeLimit?"left":"elapsed"}</span></div>`;
+  }
+  key(e){
+    if (this.done || e.ctrlKey || e.metaKey || e.altKey) return;
+    if (e.key==="Backspace"){
+      e.preventDefault();
+      if (this.pos>0){ this.pos--; if (this.typed.pop()) this.net--; this.spans[this.pos].className="ch"; this.mark(); }
+      return;
+    }
+    if (e.key.length!==1) return;
+    e.preventDefault();
+    if (!this.t0){ this.t0=performance.now(); this.iv=setInterval(()=>this.tick(),250); }
+    const exp=this.text[this.pos], ok = e.key===exp;
+    this.total++; if (ok){ this.correct++; this.net++; }
+    recordKey(this.sess, exp, ok);
+    this.spans[this.pos].className = "ch " + (ok?"ok":"bad");
+    this.typed.push(ok); this.pos++;
+    if (this.extend && this.text.length-this.pos < 80){ const more=" "+this.extend(); this.text+=more; this.append(more); }
+    if (this.pos>=this.text.length){ this.finish(); return; }
+    this.mark(); this.updateLive();
+  }
+  tick(){ if (this.timeLimit && this.elapsed()>=this.timeLimit){ this.finish(); return; } this.updateLive(); }
+  finish(){
+    if (this.done) return;
+    clearInterval(this.iv); this.done=true;
+    if (this.cur>=0 && this.spans[this.cur]) this.spans[this.cur].classList.remove("cur");
+    this.updateLive();
+    for (const [k,v] of Object.entries(this.sess)){ const s=data.keys[k]||(data.keys[k]={n:0,e:0}); s.n+=v.n; s.e+=v.e; }
+    save("keys");
+    const r = {mode:this.mode, ...this.stats()};
+    recordSession(r); this.onDone(r);
+  }
+}
+
+/* ---------- Coaching ---------- */
+function tipsFor(r, kind="typing"){
+  const t=[], wk=weakKeys().slice(0,4).map(keyLabel);
+  const prevs=data.sessions.filter(s=>s.mode===r.mode && s.wpm!=null).slice(-11,-1);
+  const avg = prevs.length>=2 ? mean(prevs.map(s=>s.wpm)) : null;
+  if (kind==="recall"){
+    t.push(r.acc<80 ? `You recalled ${r.acc}% of cards. Missed cards came back once this round. Run another short round now and again later today. Spaced repeats build memory.`
+                    : `You recalled ${r.acc}% of cards. Try the other recall direction to test deeper understanding.`);
+  } else if (kind==="audio"){
+    t.push(r.acc<90 ? `You matched ${r.acc}% of words. Listen to the whole sentence before you start typing, and use Replay instead of guessing.`
+                    : `You matched ${r.acc}% of words. Raise the speech speed one step to train faster listening.`);
+  } else if (kind==="shorthand"){
+    t.push("Speed here counts the full words your shorthand stands for, so it shows the speed shorthand gives you.");
+    t.push(r.acc<90 ? `You got ${r.acc}% right. Drill the same list again before you add new shorthand.`
+                    : `You got ${r.acc}% right. Use the shorthand pad in real writing so the habit sticks, and add a few of your own.`);
+  } else {
+    if (r.acc<92) t.push(`Accuracy was ${r.acc}%. Slow down a little until you hold 96% or better. Fixing errors costs more time than typing carefully.`);
+    else if (r.acc<96) t.push(`Accuracy was ${r.acc}%. You're close. Aim for 96% by keeping an even rhythm instead of bursts.`);
+    else t.push(`Accuracy was ${r.acc}%, which is solid. Next time, push your pace toward ${r.wpm+5} WPM.`);
+    if (r.raw!=null && r.raw-r.wpm>6) t.push(`Your raw speed was ${r.raw} WPM, but only ${r.wpm} counted. Mistakes left in place pull your score down. Fix errors with Backspace as they happen.`);
+  }
+  if (avg!=null){
+    const d=Math.round(r.wpm-avg);
+    t.push(d>=0 ? `Speed was ${d} WPM above your recent average of ${Math.round(avg)} for this mode.`
+                : `Speed was ${-d} WPM below your recent average of ${Math.round(avg)}. One slow session is normal. Look for the trend over a week.`);
+  }
+  if (wk.length && kind==="typing") t.push(`Keys you miss most: ${wk.join(", ")}. The weak-key drill targets these.`);
+  if (kind==="typing" && r.mode==="Test" && r.wpm>=data.goal) t.push(`You reached your ${data.goal} WPM goal. Raise it on the Progress tab.`);
+  return t;
+}
+
+function showResults(el, r, {again, againLabel="Go again", extra="", kind="typing", focus=true}={}){
+  el.hidden=false;
+  el.innerHTML = `<h2>${esc(r.mode)} results</h2>
+    <div class="res">
+      <div class="big"><b>${r.wpm}</b><span>words per minute</span></div>
+      <dl class="facts">
+        <div><dt>${kind==="recall"?"Recalled":kind==="audio"?"Words matched":"Accuracy"}</dt><dd>${r.acc}%</dd></div>
+        ${r.raw!=null?`<div><dt>Raw speed</dt><dd>${r.raw} WPM</dd></div>`:""}
+        ${r.errs!=null?`<div><dt>Mistakes</dt><dd>${r.errs}</dd></div>`:""}
+        <div><dt>Time</dt><dd>${fmtTime(r.secs)}</dd></div>
+      </dl>
+    </div>
+    ${extra}
+    <h3>What to work on next</h3>
+    <ul class="tips">${tipsFor(r,kind).map(t=>`<li>${t}</li>`).join("")}</ul>
+    <div class="controls" style="margin:0">
+      <button class="btn primary" data-a="again">${againLabel}</button>
+      <button class="btn" data-a="drill">Practice weak keys</button>
+      <button class="btn" data-a="progress">See progress</button>
+    </div>`;
+  el.querySelector("[data-a=again]").onclick = again;
+  el.querySelector("[data-a=drill]").onclick = () => { showTab("drills"); startDrill("weak"); };
+  el.querySelector("[data-a=progress]").onclick = () => showTab("progress");
+  if (focus) setTimeout(() => { el.querySelector("[data-a=again]").focus(); el.scrollIntoView({block:"nearest"}); }, 150);
+}
+
+/* ---------- Tabs ---------- */
+let currentTab="test";
+function showTab(name){
+  currentTab=name;
+  $$("nav button").forEach(b => b.setAttribute("aria-selected", b.dataset.tab===name ? "true" : "false"));
+  $$("main > section").forEach(s => s.hidden = s.id !== "tab-"+name);
+  if (name==="progress") renderProgress();
+  if (name==="drills"){ renderWeakInfo(); if (!drillTyper.text) startDrill("weak"); }
+  if (name==="shorthand") renderShTable();
+  if (name==="skills") renderDeckSel();
+  if (name==="game"){ G.show(); renderLeaderboard(); } else G.hide();
+}
+$$("nav button").forEach(b => b.onclick = () => showTab(b.dataset.tab));
+document.addEventListener("keydown", e => {
+  if (e.key!=="Escape") return;
+  if (!$("#profileGate").hidden){ if (profile) closeGate(); return; }
+  if (currentTab==="test") loadTest();
+  else if (currentTab==="game") G.togglePause();
+  else if (currentTab==="drills") startDrill(drillType);
+});
+
+/* ---------- Speed test ---------- */
+let testDur=60;
+const testTyper = new Typer($("#testBox"), $("#testLive"), r => showResults($("#testResults"), r, {again:loadTest}));
+function loadTest(){
+  const gen = SRC[$("#testSource").value];
+  $("#testResults").hidden=true;
+  testTyper.load(gen()+" "+gen()+" "+gen(), {timeLimit:testDur, extend:gen, mode:"Test"});
+  $("#testBox").focus();
+}
+$$("#testDur button").forEach(b => b.onclick = () => {
+  $$("#testDur button").forEach(x => x.classList.remove("on")); b.classList.add("on");
+  testDur = +b.dataset.t; loadTest();
+});
+$("#testSource").onchange = loadTest;
+$("#testRestart").onclick = loadTest;
+
+/* ---------- Audio dictation ---------- */
+const hasSpeech = "speechSynthesis" in window;
+const aud = {set:[], i:0, res:[], cur:"", t0:null, replays:0, reveals:0};
+function loadVoices(){
+  const sel=$("#audVoice"), prev=sel.value;
+  const vs=speechSynthesis.getVoices().filter(v => /^(en|es)/i.test(v.lang));
+  sel.innerHTML = vs.map(v => `<option value="${esc(v.name)}">${esc(v.name)} (${esc(v.lang)})</option>`).join("") || `<option value="">System default</option>`;
+  if (prev && vs.some(v=>v.name===prev)) sel.value=prev;
+}
+function speak(text){
+  speechSynthesis.cancel();
+  const u=new SpeechSynthesisUtterance(text);
+  u.rate=+$("#audRate").value;
+  const v=speechSynthesis.getVoices().find(v => v.name===$("#audVoice").value);
+  if (v){ u.voice=v; u.lang=v.lang; }
+  speechSynthesis.speak(u);
+}
+function audSentences(){
+  const s=$("#audSource").value;
+  if (s==="secplus") return shuffle(SECPLUS).slice(0,5).map(([t,d]) => `${t} means ${d.charAt(0).toLowerCase()+d.slice(1)}.`);
+  if (s==="deck"){ const it=activeDeckItems(); if (it.length) return shuffle(it).slice(0,5).map(itemText); }
+  return shuffle(SENTENCES).slice(0,5);
+}
+function audPlay(){
+  if (aud.cur){ speak(aud.cur); aud.replays++; $("#audInput").focus(); return; }
+  if (!aud.set.length || aud.i>=aud.set.length){
+    aud.set=audSentences(); aud.i=0; aud.res=[]; aud.replays=0; aud.reveals=0; $("#audResults").hidden=true;
+  }
+  aud.cur=aud.set[aud.i]; aud.t0=null;
+  const inp=$("#audInput"); inp.disabled=false; inp.value="";
+  $("#audReplay").disabled=false; $("#audReveal").disabled=false;
+  $("#audFeedback").innerHTML=`<p class="muted">Sentence ${aud.i+1} of ${aud.set.length}. Type what you heard, then press Enter.</p>`;
+  $("#audPlay").textContent="Play again";
+  speak(aud.cur); inp.focus();
+}
+function audSubmit(){
+  const inp=$("#audInput"), v=inp.value.trim();
+  if (!aud.cur || !v) return;
+  const secs = aud.t0 ? Math.max((performance.now()-aud.t0)/1000, 1) : 1;
+  const a=words(aud.cur), b=words(v), al=alignWords(a,b);
+  const acc=Math.round(al.matched/Math.max(a.length,b.length,1)*1000)/10;
+  const wpm=Math.round(v.length/5/(secs/60));
+  aud.res.push({acc, secs, chars:v.length});
+  $("#audFeedback").innerHTML = `<p><b>${acc}%</b> of words matched at ${wpm} WPM.</p>
+    <p class="said">${a.map((w,i)=>`<span class="w ${al.hit[i]?"hit":"miss"}">${esc(w)}</span>`).join(" ")}</p>
+    <p class="muted">Missed words are underlined.</p>`;
+  aud.cur=""; aud.i++; inp.disabled=true;
+  $("#audReplay").disabled=true; $("#audReveal").disabled=true;
+  if (aud.i>=aud.set.length){
+    const tSecs=aud.res.reduce((x,y)=>x+y.secs,0), chars=aud.res.reduce((x,y)=>x+y.chars,0);
+    const r={mode:"Audio dictation", wpm:Math.round(chars/5/(tSecs/60)), acc:Math.round(mean(aud.res.map(x=>x.acc))*10)/10, secs:Math.round(tSecs)};
+    recordSession(r);
+    const extra = `<p class="muted" style="margin-top:14px">Replays used: ${aud.replays}. Times you looked at the text: ${aud.reveals}.</p>`;
+    showResults($("#audResults"), r, {again:()=>{ aud.set=[]; audPlay(); }, againLabel:"Start a new set", extra, kind:"audio"});
+    $("#audPlay").textContent="Start a new set";
+  } else {
+    $("#audPlay").textContent=`Play sentence ${aud.i+1} of ${aud.set.length}`;
+    setTimeout(()=>$("#audPlay").focus(),150);
+  }
+}
+if (hasSpeech){
+  loadVoices(); speechSynthesis.onvoiceschanged = loadVoices;
+  $("#audPlay").onclick = audPlay;
+  $("#audReplay").onclick = () => { if (aud.cur){ speak(aud.cur); aud.replays++; $("#audInput").focus(); } };
+  $("#audReveal").onclick = () => { if (aud.cur){ aud.reveals++; $("#audFeedback").innerHTML=`<p class="said">${esc(aud.cur)}</p>`; $("#audInput").focus(); } };
+  $("#audRate").oninput = e => $("#audRateOut").textContent = (+e.target.value).toFixed(1)+"×";
+  $("#audSource").onchange = () => { aud.set=[]; aud.cur=""; aud.i=0; $("#audPlay").textContent="Play sentence 1 of 5"; $("#audInput").disabled=true; };
+  $("#audInput").addEventListener("keydown", e => {
+    if (!aud.t0 && e.key.length===1) aud.t0=performance.now();
+    if (e.key==="Enter" && !e.shiftKey){ e.preventDefault(); audSubmit(); }
+  });
+} else {
+  $("#audFeedback").innerHTML = `<p class="no">This browser doesn't support speech. Open this file in Chrome, Edge, or Safari to use audio dictation.</p>`;
+  $("#audPlay").disabled = true;
+}
+
+/* ---------- Shorthand ---------- */
+const sh = {q:[], i:0, right:0, total:0, chars:0, t0:0, busy:false, missed:[]};
+function renderShTable(){
+  const rows=Object.entries(data.shorthand).sort((a,b)=>a[0].localeCompare(b[0]));
+  $("#shTable").innerHTML = `<thead><tr><th>Shorthand</th><th>Full text</th><th></th></tr></thead><tbody>` +
+    rows.map(([a,f]) => `<tr><td class="mono">${esc(a)}</td><td>${esc(f)}</td><td><button class="btn" data-del="${esc(a)}">Remove</button></td></tr>`).join("") + `</tbody>`;
+  $$("#shTable [data-del]").forEach(b => b.onclick = () => { delete data.shorthand[b.dataset.del]; save("shorthand"); renderShTable(); });
+}
+$("#shAdd").onclick = () => {
+  const a=$("#shNewAbbr").value.trim().toLowerCase(), f=$("#shNewFull").value.trim();
+  if (!a || !f || /\s/.test(a)){ $("#shNewAbbr").focus(); return; }
+  data.shorthand[a]=f; save("shorthand"); $("#shNewAbbr").value=""; $("#shNewFull").value=""; renderShTable(); $("#shNewAbbr").focus();
+};
+$("#shNewFull").addEventListener("keydown", e => { if (e.key==="Enter") $("#shAdd").click(); });
+$("#shResetList").onclick = () => { if (confirm("Replace your shorthand list with the default list?")){ data.shorthand={...DEFAULT_SH}; save("shorthand"); renderShTable(); } };
+
+function shStart(){
+  const entries=Object.entries(data.shorthand);
+  if (!entries.length){ $("#shFeedback").textContent="Add some shorthand to your list first."; return; }
+  Object.assign(sh, {q:shuffle(entries).slice(0,15), i:0, right:0, total:0, chars:0, t0:performance.now(), busy:false, missed:[]});
+  $("#shResults").hidden=true; $("#shCard").hidden=false; shCard();
+}
+function shCard(){
+  const [a,f]=sh.q[sh.i], toAbbr=$("#shDir").value==="toAbbr";
+  $("#shCount").textContent=`Card ${sh.i+1} of ${sh.q.length}`;
+  $("#shPrompt").textContent = toAbbr ? f : a;
+  $("#shAnswer").value=""; $("#shFeedback").textContent=""; $("#shAnswer").focus();
+}
+function shCheck(){
+  if (sh.busy) return;
+  const v=$("#shAnswer").value.trim(); if (!v) return;
+  sh.busy=true;
+  const [a,f]=sh.q[sh.i], toAbbr=$("#shDir").value==="toAbbr", ans=toAbbr?a:f;
+  const ok = v.toLowerCase()===ans.toLowerCase();
+  sh.total++; sh.chars += f.length+1;
+  if (ok){ sh.right++; $("#shFeedback").innerHTML=`<span class="yes">Correct.</span>`; }
+  else { sh.missed.push([a,f]); $("#shFeedback").innerHTML=`<span class="no">Not quite.</span> The answer is <code>${esc(ans)}</code>.`; }
+  setTimeout(() => {
+    sh.busy=false; sh.i++;
+    if (sh.i<sh.q.length) return shCard();
+    const secs=Math.max((performance.now()-sh.t0)/1000,1);
+    const r={mode:"Shorthand drill", wpm:Math.round(sh.chars/5/(secs/60)), acc:Math.round(sh.right/sh.total*1000)/10, secs:Math.round(secs)};
+    recordSession(r); $("#shCard").hidden=true;
+    const extra = sh.missed.length ? `<h3>Review these</h3><p>${sh.missed.map(([a,f])=>`<code>${esc(a)}</code> = ${esc(f)}`).join("<br>")}</p>` : "";
+    showResults($("#shResults"), r, {again:shStart, againLabel:"New drill", extra, kind:"shorthand"});
+  }, ok?500:1600);
+}
+$("#shStart").onclick = shStart;
+$("#shAnswer").addEventListener("keydown", e => { if (e.key==="Enter"){ e.preventDefault(); shCheck(); } });
+
+let padSaved=0;
+$("#pad").addEventListener("keydown", e => {
+  if (!$("#padOn").checked || (e.key!==" " && e.key!=="Enter")) return;
+  const pad=e.target, pos=pad.selectionStart;
+  if (pos!==pad.selectionEnd) return;
+  const before=pad.value.slice(0,pos), m=before.match(/(\S+)$/);
+  if (!m) return;
+  const tok=m[1], full=data.shorthand[tok.toLowerCase()];
+  if (!full) return;
+  e.preventDefault();
+  const out = /^[A-Z]/.test(tok) ? full.charAt(0).toUpperCase()+full.slice(1) : full;
+  const nb = before.slice(0, before.length-tok.length) + out + (e.key===" " ? " " : "\n");
+  pad.value = nb + pad.value.slice(pos);
+  pad.selectionStart = pad.selectionEnd = nb.length;
+  padSaved += Math.max(0, full.length-tok.length);
+  $("#padStats").textContent = `Keystrokes saved: ${padSaved}`;
+});
+
+/* ---------- Learn a skill ---------- */
+let editingName=null, rc=null;
+const area=$("#skillArea");
+function renderDeckSel(){
+  const names=Object.keys(data.decks);
+  if (!data.decks[data.activeDeck]) data.activeDeck = names[0] || "";
+  $("#deckSel").innerHTML = names.length ? names.map(n => `<option ${n===data.activeDeck?"selected":""}>${esc(n)}</option>`).join("") : `<option value="">No decks yet</option>`;
+  renderMastery();
+}
+function renderMastery(){
+  const items=activeDeckItems().filter(i=>i.def), st=data.deckStats[data.activeDeck]||{};
+  const mastered=items.filter(i => { const s=st[i.term]; return s && s.r>=2 && s.r/s.s>=0.8; }).length;
+  $("#deckMastery").textContent = data.activeDeck ? `${activeDeckItems().length} items. Mastered ${mastered} of ${items.length}.` : "Create a deck to begin.";
+}
+$("#deckSel").onchange = e => { data.activeDeck=e.target.value; save("activeDeck"); renderMastery(); area.hidden=true; };
+function openEditor(name){
+  editingName=name; $("#deckEditor").hidden=false; $("#deckMsg").textContent="";
+  $("#deckName").value = name || ""; $("#deckText").value = name ? data.decks[name] : "";
+  $("#deckName").focus();
+}
+$("#deckNew").onclick = () => openEditor(null);
+$("#deckEdit").onclick = () => data.activeDeck ? openEditor(data.activeDeck) : openEditor(null);
+$("#deckCancel").onclick = () => { $("#deckEditor").hidden=true; };
+$("#deckSave").onclick = () => {
+  const n=$("#deckName").value.trim(), t=$("#deckText").value.trim();
+  if (!n){ $("#deckMsg").textContent="Give the deck a name."; $("#deckName").focus(); return; }
+  if (!t){ $("#deckMsg").textContent="Add at least one line."; $("#deckText").focus(); return; }
+  if (editingName && editingName!==n){ delete data.decks[editingName]; data.deckStats[n]=data.deckStats[editingName]; delete data.deckStats[editingName]; }
+  data.decks[n]=t; data.activeDeck=n; save("decks","activeDeck","deckStats");
+  $("#deckEditor").hidden=true; renderDeckSel();
+};
+$("#deckDelete").onclick = () => {
+  if (!data.activeDeck || !confirm(`Delete the deck "${data.activeDeck}"?`)) return;
+  delete data.decks[data.activeDeck]; delete data.deckStats[data.activeDeck];
+  data.activeDeck=Object.keys(data.decks)[0]||""; save("decks","activeDeck","deckStats"); renderDeckSel(); area.hidden=true;
+};
+$$("[data-mode]").forEach(b => b.onclick = () => {
+  if (!activeDeckItems().length){ area.hidden=false; area.innerHTML=`<p>This deck is empty. Choose Edit deck and add some lines.</p>`; return; }
+  b.dataset.mode==="copy" ? startCopy() : startRecall(b.dataset.mode);
+});
+
+function startCopy(){
+  const text = shuffle(activeDeckItems()).slice(0,4).map(itemText).join(" ");
+  area.hidden=false;
+  area.innerHTML = `<h2>Copy practice</h2><p class="muted">Type the passage. Reading it as you type helps it stick.</p>
+    <div class="live" id="copyLive"></div><div class="typebox" id="copyBox"></div><p class="hint">Click the text and start typing.</p><div id="copyRes" hidden style="margin-top:18px"></div>`;
+  const t = new Typer($("#copyBox"), $("#copyLive"), r => showResults($("#copyRes"), r, {again:startCopy, againLabel:"Next passage"}));
+  t.load(text, {mode:"Deck copy"}); $("#copyBox").focus();
+}
+function startRecall(mode){
+  const items=activeDeckItems().filter(i=>i.def);
+  area.hidden=false;
+  if (!items.length){ area.innerHTML=`<p>Recall needs lines written as <code>term: definition</code>. Choose Edit deck to add them.</p>`; return; }
+  rc={mode, q:shuffle(items).slice(0,10), i:0, right:0, total:0, chars:0, t0:null, missed:[], requeued:new Set(), busy:false, waiting:false};
+  recallCard();
+}
+function recallCard(){
+  const it=rc.q[rc.i], isRecall=rc.mode==="recall";
+  area.innerHTML = `<h2>${isRecall?"What term matches this definition?":"Define this term"}</h2>
+    <p class="muted">Card ${rc.i+1} of ${rc.q.length}</p>
+    <div class="prompt ${isRecall?"def":""}">${esc(isRecall?it.def:it.term)}</div>
+    <input type="text" id="rcIn" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="${isRecall?"Type the term":"Type the definition in your own words"}, then press Enter">
+    <div class="fb" id="rcFb" aria-live="polite"></div>`;
+  const inp=$("#rcIn"); inp.focus();
+  inp.addEventListener("keydown", e => {
+    if (rc.waiting){ if (e.key==="Enter"){ e.preventDefault(); recallNext(); } return; }
+    if (!rc.t0 && e.key.length===1) rc.t0=performance.now();
+    if (e.key==="Enter"){ e.preventDefault(); recallCheck(inp.value); }
+  });
+}
+function recallCheck(v){
+  if (rc.busy || !v.trim()) return;
+  rc.busy=true;
+  const it=rc.q[rc.i], isRecall=rc.mode==="recall", ans=isRecall?it.term:it.def;
+  let ok, note="";
+  if (isRecall){
+    ok = norm(v)===norm(ans);
+    if (!ok && lev(norm(v),norm(ans))<=2) note=" Close. Check the spelling.";
+  } else {
+    const a=words(ans), b=words(v), al=alignWords(a,b), score=al.matched/Math.max(a.length,1);
+    ok = score>=0.7; note=` You matched ${Math.round(score*100)}% of the key words.`;
+  }
+  rc.total++; rc.chars+=v.length+1;
+  const ds=data.deckStats[data.activeDeck]||(data.deckStats[data.activeDeck]={});
+  const st=ds[it.term]||(ds[it.term]={s:0,r:0}); st.s++; if (ok) st.r++; save("deckStats");
+  const fb=$("#rcFb");
+  if (ok){
+    rc.right++;
+    fb.innerHTML=`<span class="yes">Correct.</span>${isRecall?"":esc(note)}`;
+    setTimeout(recallNext, isRecall?600:1400);
+  } else {
+    if (!rc.requeued.has(it.term)){ rc.requeued.add(it.term); rc.q.push(it); }
+    if (!rc.missed.includes(it)) rc.missed.push(it);
+    fb.innerHTML=`<span class="no">Not quite.</span>${esc(note)}<br>The answer is: <b>${esc(ans)}</b><br><span class="muted">Press Enter to continue. This card will come back later in the round.</span>`;
+    rc.waiting=true; $("#rcIn").readOnly=true;
+  }
+}
+function recallNext(){
+  rc.busy=false; rc.waiting=false; rc.i++;
+  if (rc.i<rc.q.length) return recallCard();
+  const secs=rc.t0 ? Math.max((performance.now()-rc.t0)/1000,1) : 1;
+  const r={mode:rc.mode==="recall"?"Recall (term)":"Recall (definition)", wpm:Math.round(rc.chars/5/(secs/60)), acc:Math.round(rc.right/rc.total*1000)/10, secs:Math.round(secs)};
+  recordSession(r); renderMastery();
+  const extra = `<p style="margin-top:14px">You answered ${rc.right} of ${rc.total} cards correctly.</p>` +
+    (rc.missed.length ? `<h3>Review these</h3><p>${rc.missed.map(i=>`<b>${esc(i.term)}</b>: ${esc(i.def)}`).join("<br>")}</p>` : "");
+  const mode=rc.mode;
+  showResults(area, r, {again:()=>startRecall(mode), againLabel:"New round", extra, kind:"recall"});
+}
+
+/* ---------- Drills ---------- */
+let drillType="weak";
+const drillTyper = new Typer($("#drillBox"), $("#drillLive"), r => showResults($("#drillResults"), r, {again:()=>startDrill(drillType), againLabel:"Another drill"}));
+const ALLWORDS = [...new Set([...WORDS, ...SECPLUS.flatMap(([t,d]) => words(t+" "+d)).filter(w=>w.length>2)])];
+function weakDrillText(keys){
+  const out=[];
+  for (let i=0;i<28;i++){
+    const k=keys[i%keys.length], c=ALLWORDS.filter(w=>w.includes(k));
+    out.push(c.length && Math.random()<0.75 ? pick(c) : k+k+pick("asdfjkl")+k);
+  }
+  return out.join(" ");
+}
+function startDrill(t){
+  drillType=t; $("#drillResults").hidden=true;
+  const wk=weakKeys().filter(k=>k!==" ");
+  let text, mode;
+  if (t==="weak" && wk.length){ text=weakDrillText(wk); mode="Weak-key drill"; }
+  else { text=shuffle([...HOME,...HOME]).slice(0,26).join(" "); mode="Home row drill"; }
+  drillTyper.load(text, {mode});
+  renderWeakInfo(); $("#drillBox").focus();
+}
+function renderWeakInfo(){
+  const wk=weakKeys();
+  $("#weakInfo").innerHTML = wk.length
+    ? `Keys that need work, most missed first: <b>${wk.map(k=>esc(keyLabel(k))).join(", ")}</b>. The weak-key drill mixes real words that use them.`
+    : `There isn't enough data yet to find weak keys. Take a 60-second speed test first. Until then, the drill uses a home row warm-up.`;
+}
+$("#drillWeak").onclick = () => startDrill("weak");
+$("#drillHome").onclick = () => startDrill("home");
+$("#drillRestart").onclick = () => startDrill(drillType);
+
+/* ---------- Progress ---------- */
+function renderProgress(){
+  const all=data.sessions, tests=all.filter(s=>s.mode==="Test"), last10=tests.slice(-10);
+  const best=tests.length?Math.max(...tests.map(s=>s.wpm)):null;
+  const avg=last10.length?Math.round(mean(last10.map(s=>s.wpm))):null;
+  const acc=last10.length?(mean(last10.map(s=>s.acc))).toFixed(1):null;
+  const mins=Math.round(all.reduce((x,s)=>x+(s.secs||0),0)/60);
+  $("#statRow").innerHTML = [
+    [all.length,"sessions"],[best??"–","best test WPM"],[avg??"–","average of last 10 tests"],[acc!=null?acc+"%":"–","accuracy, last 10 tests"],[mins,"minutes practiced"]
+  ].map(([v,l]) => `<div class="stat"><b>${v}</b><span>${l}</span></div>`).join("");
+  $("#goal").value=data.goal;
+  const pct = avg ? Math.min(100, Math.round(avg/data.goal*100)) : 0;
+  $("#goalFill").style.width=pct+"%";
+  $("#goalText").textContent = avg ? `${pct}% of the way there` : "Take a speed test to start tracking";
+  drawChart(); renderKbd();
+  $("#coachList").innerHTML = overallCoach().map(t=>`<li>${t}</li>`).join("");
+  const rows=all.slice(-15).reverse();
+  $("#histTable").innerHTML = rows.length
+    ? `<thead><tr><th>When</th><th>Mode</th><th>WPM</th><th>Accuracy</th><th>Time</th></tr></thead><tbody>` +
+      rows.map(s => `<tr><td>${new Date(s.d).toLocaleString([], {month:"short",day:"numeric",hour:"numeric",minute:"2-digit"})}</td><td>${esc(s.mode)}</td><td class="mono">${s.wpm??"–"}</td><td class="mono">${s.acc}%</td><td class="mono">${fmtTime(s.secs)}</td></tr>`).join("") + `</tbody>`
+    : `<tbody><tr><td class="muted">No sessions yet. Your results appear here after each test, drill, or round.</td></tr></tbody>`;
+}
+$("#goal").onchange = e => { const v=Math.min(250,Math.max(10,+e.target.value||60)); data.goal=v; save("goal"); renderProgress(); };
+
+function overallCoach(){
+  const s=data.sessions.filter(x => x.wpm!=null && /Test|drill|copy/i.test(x.mode) && !/Shorthand/.test(x.mode));
+  if (!s.length) return ["Take a 60-second speed test to get your starting point. Then do one drill and one learning round each day."];
+  const t=[], last=s.slice(-5), prev=s.slice(-10,-5);
+  if (prev.length>=3){
+    const d=mean(last.map(x=>x.wpm))-mean(prev.map(x=>x.wpm));
+    t.push(d>1 ? `You're trending up: about ${d.toFixed(1)} WPM faster across your last 5 sessions.`
+      : d<-1 ? `Your last 5 sessions averaged ${(-d).toFixed(1)} WPM slower than the 5 before. Check whether you're tired or rushing, and favor accuracy for a few days.`
+      : `Your speed is holding steady. To break a plateau, do short 15-second bursts at a pace that feels a little too fast, then return to normal pace.`);
+  }
+  const a=mean(last.map(x=>x.acc));
+  t.push(a<95 ? `Recent accuracy averages ${a.toFixed(1)}%. Build accuracy to 96% first. Speed gains last longer on a clean base.`
+              : `Recent accuracy averages ${a.toFixed(1)}%. You have room to push speed.`);
+  const wk=weakKeys().slice(0,4).map(keyLabel);
+  if (wk.length) t.push(`Your weakest keys are ${wk.join(", ")}. Start each session with one weak-key drill.`);
+  const days=new Set(data.sessions.filter(x=>Date.now()-x.d<7*864e5).map(x=>new Date(x.d).toDateString())).size;
+  t.push(days<4 ? `You practiced on ${days} of the last 7 days. Ten to fifteen minutes a day works better than one long session a week.`
+                : `You practiced on ${days} of the last 7 days. Keep that rhythm going.`);
+  return t;
+}
+
+function drawChart(){
+  const c=$("#chart"), s=data.sessions.filter(x=>x.wpm!=null && x.mode==="Test").slice(-30);
+  const dpr=window.devicePixelRatio||1, w=c.clientWidth||600, h=260;
+  c.width=w*dpr; c.height=h*dpr;
+  const ctx=c.getContext("2d"); ctx.setTransform(dpr,0,0,dpr,0,0); ctx.clearRect(0,0,w,h);
+  const cs=getComputedStyle(document.documentElement), col=n=>cs.getPropertyValue(n).trim();
+  const font=`14px ${cs.getPropertyValue("--ui")}`;
+  ctx.font=font;
+  if (s.length<2){ ctx.fillStyle=col("--muted"); ctx.fillText("Finish two speed tests to see your trend here.",12,h/2); return; }
+  const P={l:42,r:46,t:16,b:24}, iw=w-P.l-P.r, ih=h-P.t-P.b;
+  const maxW=Math.ceil(Math.max(data.goal,...s.map(x=>x.wpm))*1.15/10)*10;
+  const X=i=>P.l+i*iw/(s.length-1), YW=v=>P.t+ih-(v/maxW)*ih, YA=a=>P.t+ih-((Math.min(100,Math.max(80,a))-80)/20)*ih;
+  ctx.strokeStyle=col("--line"); ctx.lineWidth=1; ctx.fillStyle=col("--muted");
+  for (let k=0;k<=4;k++){
+    const y=P.t+ih*k/4; ctx.beginPath(); ctx.moveTo(P.l,y); ctx.lineTo(w-P.r,y); ctx.stroke();
+    ctx.textAlign="right"; ctx.fillText(Math.round(maxW*(1-k/4)), P.l-8, y+5);
+    ctx.textAlign="left"; ctx.fillText(Math.round(100-20*k/4)+"%", w-P.r+8, y+5);
+  }
+  ctx.setLineDash([6,5]); ctx.strokeStyle=col("--cur"); ctx.beginPath(); ctx.moveTo(P.l,YW(data.goal)); ctx.lineTo(w-P.r,YW(data.goal)); ctx.stroke(); ctx.setLineDash([]);
+  ctx.fillStyle=col("--cur"); ctx.textAlign="left"; ctx.fillText(`Goal ${data.goal}`, P.l+6, YW(data.goal)-6);
+  const line=(fn,color,width,dots)=>{
+    ctx.strokeStyle=color; ctx.lineWidth=width; ctx.lineJoin="round"; ctx.beginPath();
+    s.forEach((x,i)=> i?ctx.lineTo(X(i),fn(x)):ctx.moveTo(X(i),fn(x))); ctx.stroke();
+    if (dots){ ctx.fillStyle=color; s.forEach((x,i)=>{ ctx.beginPath(); ctx.arc(X(i),fn(x),3.5,0,7); ctx.fill(); }); }
+  };
+  line(x=>YA(x.acc), col("--ok"), 2, false);
+  line(x=>YW(x.wpm), col("--accent"), 3, true);
+}
+window.addEventListener("resize", () => { if (currentTab==="progress") drawChart(); });
+
+function renderKbd(){
+  const rows=["`1234567890-=","qwertyuiop[]","asdfghjkl;'","zxcvbnm,./"], pads=[0,22,34,56];
+  const cell=k=>{
+    const s=data.keys[k], lbl=k===" "?"space":k;
+    if (!s || s.n<5) return `<div class="key none${k===" "?" space":""}" title="${esc(lbl)}: not enough data">${esc(k===" "?"":k)}</div>`;
+    const rate=s.e/s.n, hue=Math.round(140-Math.min(rate/0.15,1)*140);
+    return `<div class="key${k===" "?" space":""}" style="background:hsl(${hue} 62% 42%)" title="${esc(lbl)}: ${Math.round((1-rate)*100)}% accurate over ${s.n} presses">${esc(k===" "?"":k)}</div>`;
+  };
+  $("#kbd").innerHTML = rows.map((r,i)=>`<div class="krow" style="padding-left:${pads[i]}px">${[...r].map(cell).join("")}</div>`).join("") +
+    `<div class="krow" style="padding-left:170px">${cell(" ")}</div>`;
+}
+
+$("#exportBtn").onclick = () => {
+  const blob=new Blob([JSON.stringify(profileObj(),null,2)],{type:"application/json"});
+  const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=`keystroke-coach-${profile||"profile"}.json`;
+  document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+};
+$("#importFile").onchange = e => {
+  const f=e.target.files[0]; if (!f) return;
+  f.text().then(t => {
+    try{
+      const raw=JSON.parse(t), d=raw.data||raw;
+      if (!Array.isArray(d.sessions)) throw new Error("bad file");
+      ["sessions","keys","shorthand","decks","activeDeck","deckStats","goal","game"].forEach(k => { if (d[k]!==undefined) data[k]=d[k]; });
+      data.game=Object.assign(blankData().game, data.game||{});
+      persistNow(); renderProgress(); alert(`Progress imported into profile ${profile}.`);
+    }catch(err){ alert("That file isn't a Keystroke Coach export. Choose a file saved with Export progress."); }
+    e.target.value="";
+  });
+};
+$("#resetBtn").onclick = () => {
+  if (!confirm(`Reset sessions, key stats, deck mastery, and game scores for ${profile}? Decks and shorthand are kept.`)) return;
+  data.sessions=[]; data.keys={}; data.deckStats={}; data.game=blankData().game; save(); renderProgress();
+};
+
+/* ---------- Profile picker ---------- */
+async function renderGate(){
+  const fs=$("#folderStatus"), fb=$("#folderBtn");
+  if (!fsSupported){
+    fs.textContent="This browser can't save files to a folder, so profiles are saved inside this browser. To save profile files next to this tool, open it in Chrome or Edge. You can also use Export on the Progress tab.";
+    fb.hidden=true;
+  } else if (dirHandle && dirReady){
+    fs.innerHTML=`Saving profiles to <b>${esc(dirHandle.name)}/keystroke-coach-profiles</b>.`; fb.hidden=false; fb.textContent="Change folder";
+  } else if (dirHandle){
+    fs.innerHTML=`Last folder: <b>${esc(dirHandle.name)}</b>. The browser needs your OK again each time you open the tool. Picking a profile asks for it.`; fb.hidden=false; fb.textContent="Reconnect folder";
+  } else {
+    fs.textContent="Not connected. Choose the folder that holds keystroke-coach.html. Profiles save as files in a keystroke-coach-profiles folder inside it.";
+    fb.hidden=false; fb.textContent="Choose save folder";
+  }
+  const ps=await allProfiles();
+  const list=Object.entries(ps).sort((a,b)=>(b[1].updated||0)-(a[1].updated||0));
+  $("#profileList").innerHTML = list.length
+    ? list.map(([ini,o]) => { const d=o.data||{}; return `<button class="pbtn" data-ini="${esc(ini)}"><b>${esc(ini)}</b><span>${(d.sessions||[]).length} sessions<br>High score ${((d.game&&d.game.best)||0).toLocaleString()}</span></button>`; }).join("")
+    : `<p class="muted" style="grid-column:1/-1">No profiles yet. Enter your initials to create the first one.</p>`;
+  $$("#profileList .pbtn").forEach(b => b.onclick = () => selectProfile(b.dataset.ini));
+  $("#gateCancel").hidden = !profile;
+}
+function openGate(){
+  if (profile) persistNow();
+  G.pause();
+  $("#profileGate").hidden=false; $("#gateMsg").textContent=""; $("#newIni").value="";
+  renderGate(); setTimeout(()=>$("#newIni").focus(), 50);
+}
+function closeGate(){ $("#profileGate").hidden=true; }
+async function selectProfile(ini, isNew=false){
+  ini=ini.toUpperCase();
+  if (dirHandle && !dirReady) await ensureFolder();
+  if (profile && profile!==ini) await persistNow();
+  let best=null;
+  const lo=LS.get("kc_profile_"+ini); if (lo){ try{ best=JSON.parse(lo); }catch(e){} }
+  if (dirReady){ const fo=await readFolderProfile(ini); if (fo && (!best || (fo.updated||0)>(best.updated||0))) best=fo; }
+  data=Object.assign(blankData(), (best&&best.data)||{});
+  data.game=Object.assign(blankData().game, data.game||{});
+  if (!best){ const old=legacyData(); if (old){ Object.assign(data, old); LS.set("kc_migrated","1"); } }
+  profile=ini; LS.set("kc_lastProfile", ini);
+  $("#whoBtn").textContent=`Player ${ini}`;
+  closeGate(); await persistNow(); resetViews();
+}
+function resetViews(){
+  ["#testResults","#drillResults","#audResults","#shResults","#skillArea"].forEach(s => $(s).hidden=true);
+  drillTyper.text=""; aud.set=[]; aud.cur=""; aud.i=0;
+  $("#audPlay").textContent="Play sentence 1 of 5"; $("#audInput").disabled=true;
+  G.reset(); renderDeckSel(); showTab(currentTab); if (currentTab==="test") loadTest(); else loadTestQuiet();
+}
+function loadTestQuiet(){ const gen=SRC[$("#testSource").value]; testTyper.load(gen()+" "+gen()+" "+gen(), {timeLimit:testDur, extend:gen, mode:"Test"}); }
+$("#newIniBtn").onclick = () => {
+  const v=$("#newIni").value.trim();
+  if (!/^[A-Za-z]{2,3}$/.test(v)){ $("#gateMsg").textContent="Use 2 or 3 letters, like JT."; $("#newIni").focus(); return; }
+  selectProfile(v, true);
+};
+$("#newIni").addEventListener("keydown", e => { if (e.key==="Enter") $("#newIniBtn").click(); });
+$("#gateCancel").onclick = closeGate;
+$("#whoBtn").onclick = openGate;
+$("#folderBtn").onclick = async () => {
+  const ok = (dirHandle && !dirReady && $("#folderBtn").textContent==="Reconnect folder") ? await ensureFolder() : await chooseFolder();
+  if (ok && profile) await persistNow();
+  renderGate();
+};
+$("#folderHdrBtn").onclick = async () => {
+  if (dirHandle) await ensureFolder(); else await chooseFolder();
+  await persistNow();
+};
+
+/* ---------- Grid Defense game ---------- */
+const SEC_WORDS=[...new Set([...SECPLUS.map(([t])=>t.toLowerCase()), ...SECPLUS.flatMap(([,d])=>words(d)).filter(w=>w.length>=5)])];
+async function renderLeaderboard(){
+  const ps=await allProfiles();
+  const rows=Object.entries(ps).map(([ini,o]) => ({ini, g:Object.assign({best:0,bestWave:0,bestWpm:0}, (o.data&&o.data.game)||{})}))
+    .filter(r=>r.g.best>0).sort((a,b)=>b.g.best-a.g.best).slice(0,10);
+  $("#leaderboard").innerHTML = rows.length
+    ? `<thead><tr><th>Rank</th><th>Player</th><th>Score</th><th>Wave</th><th>Best WPM</th></tr></thead><tbody>` +
+      rows.map((r,i)=>`<tr class="${r.ini===profile?"me":""}"><td class="mono">${i+1}</td><td class="mono">${esc(r.ini)}</td><td class="mono">${r.g.best.toLocaleString()}</td><td class="mono">${r.g.bestWave}</td><td class="mono">${r.g.bestWpm}</td></tr>`).join("") + `</tbody>`
+    : `<tbody><tr><td class="muted">No scores yet. Play a round to claim the top spot.</td></tr></tbody>`;
+}
+
+const G = (() => {
+  const W=900, H=560, FIRE_Y=H-118, PY=H-58;
+  const C={bg:"#01070D", grid:"rgba(41,230,255,0.12)", cyan:"#29E6FF", orange:"#FF8A1F", red:"#FF3B4E", white:"#E8FBFF", boss:"#FF3BD1", dim:"#7FA9B5"};
+  const cv=$("#game"), ctx=cv.getContext("2d");
+  const reduced=window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const OF=(px,w=700)=>`${w} ${px}px Orbitron, "IBM Plex Mono", monospace`;
+  const MF=px=>`500 ${px}px "IBM Plex Mono", ui-monospace, Menlo, monospace`;
+  let scale=1, dpr=1, raf=null, last=0, clock=0, st=fresh();
+
+  function fresh(){ return {mode:"title", score:0, wave:0, shields:3, combo:0, bestCombo:0, emp:0, enemies:[], discs:[], parts:[], ghosts:[], rings:[],
+    target:null, queue:[], spawnT:0, banner:0, bannerText:"", flash:0, missFlash:0, shake:0, scroll:0, px:W/2, ptrail:[],
+    chars:0, correct:0, total:0, active:0, sess:{}, diff:1, toast:"", toastT:0, result:null, overT:0}; }
+
+  function resize(){
+    const w=cv.parentElement.clientWidth||W; scale=w/W; dpr=window.devicePixelRatio||1;
+    cv.style.height=Math.round(H*scale)+"px"; cv.width=Math.round(w*dpr); cv.height=Math.round(H*scale*dpr); draw();
+  }
+
+  /* --- sound --- */
+  let ac=null;
+  function sfx(k){
+    if (!$("#gSound").checked) return;
+    const P={key:[900,.03,"square",.015],miss:[140,.14,"sawtooth",.05],fire:[420,.14,"triangle",.07],kill:[260,.3,"sawtooth",.07],
+             breach:[70,.55,"sawtooth",.14],emp:[55,1,"sine",.22],over:[120,1.3,"triangle",.14],wave:[660,.35,"sine",.07]}[k];
+    if (!P) return;
+    try{
+      ac = ac || new (window.AudioContext||window.webkitAudioContext)();
+      const o=ac.createOscillator(), g=ac.createGain(), n=ac.currentTime;
+      o.type=P[2]; o.frequency.setValueAtTime(P[0],n);
+      if (k==="fire") o.frequency.exponentialRampToValueAtTime(P[0]*3,n+P[1]);
+      if (k==="kill"||k==="over"||k==="breach") o.frequency.exponentialRampToValueAtTime(Math.max(30,P[0]*.3),n+P[1]);
+      g.gain.setValueAtTime(P[3],n); g.gain.exponentialRampToValueAtTime(.0001,n+P[1]);
+      o.connect(g); g.connect(ac.destination); o.start(n); o.stop(n+P[1]+.02);
+    }catch(e){}
+  }
+
+  /* --- words --- */
+  function baseList(){
+    const s=$("#gSource").value;
+    if (s==="secplus") return SEC_WORDS;
+    if (s==="deck"){ const l=activeDeckItems().map(i=>i.term.trim()).filter(t=>t && t.length<=22); if (l.length) return l; }
+    return WORDS.filter(w=>w.length>=3);
+  }
+  function usedLetters(){ return new Set(st.enemies.filter(e=>!e.dead&&!e.doomed).map(e=>e.word[0].toLowerCase())); }
+  function pickWord(){
+    const l=baseList(), short=l.filter(w=>w.length<=4+st.wave), src=short.length>=4?short:l, used=usedLetters();
+    let w=pick(src); for (let i=0;i<25 && used.has(w[0].toLowerCase());i++) w=pick(src);
+    return w;
+  }
+  function bossPhrase(){
+    const single=baseList().filter(w=>!w.includes(" ")), used=usedLetters();
+    const src=single.length?single:WORDS;
+    let p; for (let i=0;i<25;i++){ p=[pick(src),pick(src),pick(src)].join(" "); if (p.length>32) p=p.split(" ").slice(0,2).join(" "); if (!used.has(p[0].toLowerCase())) break; }
+    return p;
+  }
+
+  /* --- game flow --- */
+  function start(){
+    st=fresh(); st.diff=+$("#gDiff").value; st.mode="playing";
+    nextWave(); cv.focus(); last=performance.now();
+  }
+  function nextWave(){
+    st.wave++;
+    const boss=st.wave%5===0, n=Math.min(26, 5+2*st.wave);
+    st.queue = boss ? ["boss","n","n","n","n"] : Array(n).fill("n");
+    st.banner=2; st.bannerText = boss ? `WAVE ${st.wave}: ROOTKIT INBOUND` : `WAVE ${st.wave}`; st.spawnT=0;
+    sfx("wave");
+  }
+  function spawn(type){
+    const boss=type==="boss", word=boss?bossPhrase():pickWord(), x=90+Math.random()*(W-180);
+    st.enemies.push({x, y:-24, word, typed:0, boss, locked:false, doomed:false, dead:false,
+      speed:(boss?20:30+5*st.wave)*st.diff*(0.85+Math.random()*0.3), dir:0, turnT:1+Math.random()*2, trail:[{x,y:-60}]});
+  }
+  function toast(t){ st.toast=t; st.toastT=2; }
+  function boom(x,y,col,n){
+    for (let i=0;i<n;i++){ const a=Math.random()*Math.PI*2, v=80+Math.random()*340;
+      st.parts.push({x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v,life:.5+Math.random()*.5,max:1,s:2+Math.random()*4,color:Math.random()<.3?C.white:col}); }
+  }
+  function kill(e){
+    e.dead=true; const col=e.boss?C.boss:C.orange;
+    boom(e.x,e.y,col,e.boss?90:30); st.ghosts.push({pts:[...e.trail,{x:e.x,y:e.y}],a:1,color:col});
+    if (st.target===e) st.target=null;
+    if (e.boss){ st.shields=Math.min(5,st.shields+1); toast("ROOTKIT DEREZZED  +1 SHIELD"); }
+    sfx("kill");
+  }
+  function breach(e){
+    e.dead=true; st.shields-=e.boss?2:1;
+    boom(e.x,e.y,C.red,50); st.ghosts.push({pts:[...e.trail,{x:e.x,y:e.y}],a:1,color:C.red});
+    st.flash=1; st.shake=.4; st.combo=0; if (st.target===e) st.target=null;
+    sfx("breach");
+    if (st.shields<=0) over();
+  }
+  function miss(){ st.combo=0; st.missFlash=.18; sfx("miss"); }
+  function complete(){
+    const t=st.target; t.doomed=true; t.locked=false; st.target=null;
+    st.combo++; st.bestCombo=Math.max(st.bestCombo,st.combo); st.chars++;
+    const mult=Math.min(5,1+Math.floor(st.combo/10));
+    st.score += t.word.length*10*mult + (t.boss?500:0);
+    st.discs.push({x:st.px, y:PY-22, e:t}); sfx("fire");
+    if (st.combo%10===0) toast(`COMBO ${st.combo}  x${Math.min(5,1+Math.floor(st.combo/10))} MULTIPLIER`);
+    if (st.combo%20===0 && st.emp<2){ st.emp++; toast("EMP READY  PRESS ENTER"); }
+  }
+  function emp(){
+    if (st.emp<=0) return; st.emp--;
+    for (const e of st.enemies) if (!e.dead){ if (!e.doomed) st.score+=e.word.length*5; kill(e); }
+    st.target=null; st.rings.push({x:st.px,y:PY,r:0}); st.shake=.3; sfx("emp");
+  }
+  function over(){
+    st.mode="over"; st.overT=1; st.target=null;
+    const secs=Math.max(st.active,1), wpm=Math.round(st.chars/5/(secs/60)), acc=st.total?Math.round(st.correct/st.total*1000)/10:100;
+    for (const [k,v] of Object.entries(st.sess)){ const s=data.keys[k]||(data.keys[k]={n:0,e:0}); s.n+=v.n; s.e+=v.e; }
+    const g=data.game, newHigh=st.score>g.best;
+    g.best=Math.max(g.best,st.score); g.bestWave=Math.max(g.bestWave,st.wave); g.bestWpm=Math.max(g.bestWpm,wpm); g.plays++;
+    st.result={wpm,acc,newHigh};
+    const r={mode:"Grid Defense", wpm, acc, secs:Math.round(secs)};
+    recordSession(r); save(); sfx("over");
+    const extra=`<p style="margin-top:14px">Score <b>${st.score.toLocaleString()}</b>${newHigh?" (new personal best)":""}. You reached wave ${st.wave} with a best combo of ${st.bestCombo}.</p>`;
+    showResults($("#gameResults"), r, {again:start, againLabel:"Play again", extra, focus:false});
+    renderLeaderboard();
+  }
+  function pause(){ if (st.mode==="playing") st.mode="paused"; }
+  function togglePause(){
+    if (st.mode==="playing") st.mode="paused";
+    else if (st.mode==="paused"){ st.mode="playing"; last=performance.now(); cv.focus(); }
+  }
+
+  /* --- input --- */
+  cv.addEventListener("keydown", e => {
+    if (e.ctrlKey||e.metaKey||e.altKey) return;
+    if (e.key==="Escape"){ e.preventDefault(); e.stopPropagation(); togglePause(); return; }
+    if (e.key==="Enter"){
+      e.preventDefault();
+      if (st.mode==="title" || (st.mode==="over" && st.overT<=0)) start();
+      else if (st.mode==="paused") togglePause();
+      else if (st.mode==="playing") emp();
+      return;
+    }
+    if (st.mode!=="playing") return;
+    if (e.key==="Backspace"){ e.preventDefault(); if (st.target){ st.target.typed=0; st.target.locked=false; st.target=null; } return; }
+    if (e.key.length!==1) return;
+    e.preventDefault();
+    const c=e.key.toLowerCase(); st.total++;
+    if (!st.target){
+      const cands=st.enemies.filter(x=>!x.dead && !x.doomed && x.word[0].toLowerCase()===c).sort((a,b)=>b.y-a.y);
+      if (!cands.length){ miss(); return; }
+      st.target=cands[0]; st.target.locked=true; st.target.typed=0;
+    }
+    const t=st.target, exp=t.word[t.typed];
+    if (c===exp.toLowerCase()){
+      t.typed++; st.correct++; st.chars++; recordKey(st.sess,exp,true); sfx("key");
+      if (t.typed>=t.word.length) complete();
+    } else { recordKey(st.sess,exp,false); miss(); }
+  });
+  cv.addEventListener("blur", () => { if (st.mode==="playing") st.mode="paused"; });
+  cv.addEventListener("click", () => { cv.focus(); if (st.mode==="paused") togglePause(); });
+  $("#gPause").onclick = () => { togglePause(); cv.focus(); };
+
+  /* --- update --- */
+  function update(dt){
+    clock+=dt;
+    if (st.mode==="paused") return;
+    const spd=55+st.wave*4;
+    st.scroll=(st.scroll+spd*dt)%4500;
+    for (const p of st.parts){ p.life-=dt; p.x+=p.vx*dt; p.y+=p.vy*dt; p.vx*=.97; p.vy*=.97; }
+    st.parts=st.parts.filter(p=>p.life>0);
+    for (const g of st.ghosts) g.a-=dt*1.4; st.ghosts=st.ghosts.filter(g=>g.a>0);
+    for (const r of st.rings) r.r+=1400*dt; st.rings=st.rings.filter(r=>r.r<1000);
+    st.flash=Math.max(0,st.flash-dt*1.6); st.missFlash=Math.max(0,st.missFlash-dt); st.shake=Math.max(0,st.shake-dt);
+    st.toastT=Math.max(0,st.toastT-dt); st.overT=Math.max(0,st.overT-dt);
+    const tx=st.target?st.target.x:st.px; st.px+=(tx-st.px)*Math.min(1,dt*7);
+    for (const p of st.ptrail) p.y+=spd*dt;
+    st.ptrail.push({x:st.px,y:PY+16}); st.ptrail=st.ptrail.filter(p=>p.y<H+20);
+    if (st.mode!=="playing") return;
+    st.active+=dt;
+    if (st.banner>0) st.banner-=dt;
+    else if (st.queue.length){ st.spawnT-=dt; if (st.spawnT<=0){ spawn(st.queue.shift()); st.spawnT=Math.max(.6,2.4-.13*st.wave)/st.diff; } }
+    else if (!st.enemies.some(e=>!e.dead) && !st.discs.length) nextWave();
+    for (const e of st.enemies){
+      if (e.dead || e.doomed) continue;
+      const v=e.speed*dt;
+      if (!e.boss){
+        e.turnT-=dt;
+        if (e.turnT<=0){
+          if (e.dir===0 && e.y>40 && e.y<FIRE_Y-140){ e.dir=Math.random()<.5?-1:1; e.turnT=.3+Math.random()*.6; }
+          else { e.dir=0; e.turnT=1+Math.random()*2.2; }
+          e.trail.push({x:e.x,y:e.y}); if (e.trail.length>8) e.trail.shift();
+        }
+      }
+      if (e.dir===0) e.y+=v;
+      else { e.x+=e.dir*v*1.5; if (e.x<50 || e.x>W-50){ e.x=Math.max(50,Math.min(W-50,e.x)); e.trail.push({x:e.x,y:e.y}); e.dir=0; e.turnT=1+Math.random()*2; } }
+      if (e.y>=FIRE_Y){ breach(e); if (st.mode!=="playing") return; }
+    }
+    for (const d of st.discs){
+      const e=d.e, dx=e.x-d.x, dy=e.y-d.y, dist=Math.hypot(dx,dy);
+      if (dist<16 || e.dead){ if (!e.dead) kill(e); d.done=true; }
+      else { const m=Math.min(dist,1300*dt); d.x+=dx/dist*m; d.y+=dy/dist*m; }
+    }
+    st.discs=st.discs.filter(d=>!d.done);
+    st.enemies=st.enemies.filter(e=>!e.dead);
+  }
+
+  /* --- drawing --- */
+  const glow=(c,b)=>{ ctx.shadowColor=c; ctx.shadowBlur=b; };
+  const noGlow=()=>{ ctx.shadowBlur=0; };
+  function rr(x,y,w,h,r){ ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r); ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath(); }
+  function poly(pts,col,w){
+    if (pts.length<2) return;
+    ctx.lineJoin="round"; ctx.lineCap="round";
+    ctx.beginPath(); ctx.moveTo(pts[0].x,pts[0].y); for (let i=1;i<pts.length;i++) ctx.lineTo(pts[i].x,pts[i].y);
+    glow(col,14); ctx.strokeStyle=col; ctx.lineWidth=w; ctx.stroke(); noGlow();
+    ctx.strokeStyle="rgba(255,255,255,.75)"; ctx.lineWidth=1; ctx.stroke();
+  }
+  function cycle(x,y,dir,col,s,doomed){
+    ctx.save(); ctx.translate(x,y);
+    ctx.rotate(dir==="up"?0: dir===0?Math.PI : dir<0?-Math.PI/2 : Math.PI/2);
+    ctx.scale(s,s);
+    if (doomed && !reduced) ctx.globalAlpha=Math.random()<.5?.35:1;
+    glow(col,18); ctx.fillStyle="#03141C"; ctx.strokeStyle=col; ctx.lineWidth=2.5;
+    rr(-8,-18,16,36,7); ctx.fill(); ctx.stroke(); noGlow();
+    ctx.fillStyle=col; rr(-9,-15,18,6,3); ctx.fill(); rr(-9,9,18,6,3); ctx.fill();
+    ctx.fillStyle="rgba(232,251,255,.9)"; rr(-3,-16,6,9,3); ctx.fill();
+    ctx.strokeStyle=col; ctx.lineWidth=1.5; ctx.beginPath(); ctx.moveTo(0,-4); ctx.lineTo(0,16); ctx.stroke();
+    ctx.restore();
+  }
+  function label(e){
+    ctx.font=MF(e.boss?20:17);
+    const txt=e.word, w=ctx.measureText(txt).width, bw=w+20, bh=e.boss?34:28;
+    const lx=Math.max(bw/2+6,Math.min(W-bw/2-6,e.x)), ly=e.y+(e.boss?58:40);
+    ctx.fillStyle="rgba(1,7,13,.88)"; rr(lx-bw/2,ly-bh/2,bw,bh,7); ctx.fill();
+    if (e.locked) glow(C.cyan,12);
+    ctx.strokeStyle=e.locked?C.cyan:(e.boss?C.boss:"rgba(255,138,31,.6)"); ctx.lineWidth=e.locked?2:1; ctx.stroke(); noGlow();
+    ctx.textAlign="left"; ctx.textBaseline="middle";
+    const done=txt.slice(0,e.typed), x0=lx-w/2;
+    ctx.fillStyle=C.cyan; ctx.fillText(done,x0,ly+1);
+    ctx.fillStyle=C.white; ctx.fillText(txt.slice(e.typed),x0+ctx.measureText(done).width,ly+1);
+    ctx.textBaseline="alphabetic";
+  }
+  function hud(){
+    if (st.mode==="title") return;
+    ctx.textBaseline="alphabetic";
+    ctx.textAlign="left"; ctx.font=OF(12,600); ctx.fillStyle=C.dim; ctx.fillText("SCORE",18,28);
+    ctx.font=OF(24); ctx.fillStyle=C.white; glow(C.cyan,10); ctx.fillText(String(st.score).padStart(6,"0"),18,56); noGlow();
+    ctx.textAlign="center"; ctx.font=OF(12,600); ctx.fillStyle=C.dim; ctx.fillText("WAVE",W/2,28);
+    ctx.font=OF(24); ctx.fillStyle=C.white; ctx.fillText(st.wave,W/2,56);
+    ctx.textAlign="right"; ctx.font=OF(12,600); ctx.fillStyle=C.dim; ctx.fillText("SHIELDS",W-18,28);
+    for (let i=0;i<5;i++){
+      const x=W-34-i*22, on=i<st.shields;
+      if (on){ glow(C.cyan,10); ctx.fillStyle=C.cyan; ctx.fillRect(x,38,14,20); noGlow(); }
+      else { ctx.strokeStyle="rgba(127,169,181,.35)"; ctx.lineWidth=1; ctx.strokeRect(x+.5,38.5,13,19); }
+    }
+    const mult=Math.min(5,1+Math.floor(st.combo/10));
+    ctx.textAlign="left"; ctx.font=OF(14,700); ctx.fillStyle=st.combo?C.cyan:C.dim;
+    ctx.fillText(`COMBO ${st.combo}   x${mult}`,18,H-20);
+    const wpm=st.active>3?Math.round(st.chars/5/(st.active/60)):0;
+    ctx.textAlign="right"; ctx.fillStyle=C.dim; ctx.fillText(`${wpm} WPM`,W-18,H-20);
+    ctx.fillStyle=st.emp?C.cyan:C.dim; ctx.fillText(`EMP ${st.emp}`,W-120,H-20);
+    if (st.toastT>0){ ctx.globalAlpha=Math.min(1,st.toastT*2); ctx.textAlign="center"; ctx.font=OF(16,700); glow(C.cyan,14); ctx.fillStyle=C.cyan; ctx.fillText(st.toast,W/2,FIRE_Y+40); noGlow(); ctx.globalAlpha=1; }
+  }
+  function centerText(t,y,font,col,g=0){ ctx.textAlign="center"; ctx.font=font; if (g) glow(col,g); ctx.fillStyle=col; ctx.fillText(t,W/2,y); noGlow(); }
+  function overlay(){
+    if (st.mode==="playing" && st.banner>0){ ctx.globalAlpha=Math.min(1,st.banner); centerText(st.bannerText,H/2-30,OF(38,900),st.bannerText.includes("ROOTKIT")?C.boss:C.cyan,24); ctx.globalAlpha=1; }
+    if (st.mode==="playing") return;
+    ctx.fillStyle="rgba(1,7,13,.74)"; ctx.fillRect(0,0,W,H);
+    const blink = reduced || Math.floor(clock*1.6)%2===0;
+    if (st.mode==="title"){
+      centerText("GRID DEFENSE",180,OF(62,900),C.cyan,30);
+      centerText("Rogue programs are racing toward your firewall.",245,MF(18),C.white);
+      centerText("Type the word on each one to lock on and derezz it.",273,MF(18),C.white);
+      if (blink) centerText(document.activeElement===cv?"PRESS ENTER TO START":"CLICK HERE, THEN PRESS ENTER",345,OF(18,700),C.orange,14);
+      centerText(`PLAYER ${profile||"--"}     HIGH SCORE ${(data.game.best||0).toLocaleString()}`,405,OF(13,600),C.dim);
+    } else if (st.mode==="paused"){
+      centerText("PAUSED",H/2-10,OF(52,900),C.cyan,24);
+      centerText("Press Esc or click to resume",H/2+34,MF(18),C.white);
+    } else if (st.mode==="over"){
+      const r=st.result||{wpm:0,acc:0};
+      centerText("FIREWALL DOWN",165,OF(50,900),C.red,26);
+      centerText(st.score.toLocaleString(),240,OF(44,900),C.white,16);
+      centerText(`Wave ${st.wave}    ${r.wpm} WPM    ${r.acc}% accuracy    Best combo ${st.bestCombo}`,290,MF(18),C.white);
+      if (r.newHigh) centerText("NEW HIGH SCORE",335,OF(20,700),C.cyan,18);
+      if (blink && st.overT<=0) centerText(document.activeElement===cv?"PRESS ENTER TO PLAY AGAIN":"CLICK HERE, THEN PRESS ENTER",400,OF(17,700),C.orange,14);
+    }
+  }
+  function draw(){
+    ctx.setTransform(scale*dpr,0,0,scale*dpr,0,0);
+    ctx.save();
+    if (st.shake>0 && !reduced) ctx.translate((Math.random()-.5)*16*st.shake,(Math.random()-.5)*16*st.shake);
+    ctx.fillStyle=C.bg; ctx.fillRect(-20,-20,W+40,H+40);
+    const g=ctx.createLinearGradient(0,0,0,H);
+    g.addColorStop(0,"rgba(41,230,255,.10)"); g.addColorStop(.45,"rgba(41,230,255,0)"); g.addColorStop(1,"rgba(255,138,31,.06)");
+    ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
+    ctx.strokeStyle=C.grid; ctx.lineWidth=1; ctx.beginPath();
+    for (let x=0;x<=W;x+=45){ ctx.moveTo(x+.5,0); ctx.lineTo(x+.5,H); }
+    for (let y=st.scroll%45-45;y<=H;y+=45){ ctx.moveTo(0,y+.5); ctx.lineTo(W,y+.5); }
+    ctx.stroke();
+    const fw=st.flash>0?C.red:C.cyan;
+    glow(fw,14); ctx.strokeStyle=fw; ctx.lineWidth=2; ctx.setLineDash([18,10]); ctx.lineDashOffset=-st.scroll;
+    ctx.beginPath(); ctx.moveTo(0,FIRE_Y); ctx.lineTo(W,FIRE_Y); ctx.stroke(); ctx.setLineDash([]); noGlow();
+    ctx.fillStyle=C.dim; ctx.font=OF(10,600); ctx.textAlign="right"; ctx.fillText("FIREWALL",W-12,FIRE_Y+16);
+    for (const gh of st.ghosts){ ctx.globalAlpha=Math.max(0,gh.a); poly(gh.pts,gh.color,3); } ctx.globalAlpha=1;
+    poly(st.ptrail,C.cyan,3);
+    for (const e of st.enemies){ if (e.dead) continue; const col=e.boss?C.boss:C.orange; poly([...e.trail,{x:e.x,y:e.y}],col,e.boss?4:3); cycle(e.x,e.y,e.dir,col,e.boss?1.8:1,e.doomed); }
+    cycle(st.px,PY,"up",C.cyan,1.15,false);
+    for (const d of st.discs){ glow(C.cyan,16); ctx.strokeStyle=C.white; ctx.lineWidth=3; ctx.beginPath(); ctx.arc(d.x,d.y,7,0,Math.PI*2); ctx.stroke(); noGlow(); }
+    for (const r of st.rings){ ctx.globalAlpha=Math.max(0,1-r.r/1000); glow(C.cyan,20); ctx.strokeStyle=C.cyan; ctx.lineWidth=4; ctx.beginPath(); ctx.arc(r.x,r.y,r.r,0,Math.PI*2); ctx.stroke(); noGlow(); }
+    ctx.globalAlpha=1;
+    for (const p of st.parts){ ctx.globalAlpha=Math.max(0,p.life/p.max); ctx.fillStyle=p.color; ctx.fillRect(p.x-p.s/2,p.y-p.s/2,p.s,p.s); }
+    ctx.globalAlpha=1;
+    for (const e of st.enemies) if (!e.dead && !e.doomed) label(e);
+    ctx.restore();
+    if (st.flash>0){ ctx.fillStyle=`rgba(255,59,78,${st.flash*.3})`; ctx.fillRect(0,0,W,H); }
+    if (st.missFlash>0){ ctx.strokeStyle=`rgba(255,59,78,${Math.min(1,st.missFlash*5)})`; ctx.lineWidth=6; ctx.strokeRect(3,3,W-6,H-6); }
+    hud(); overlay();
+  }
+  function loop(t){ const dt=Math.min(.05,(t-last)/1000||0); last=t; update(dt); draw(); raf=requestAnimationFrame(loop); }
+  function show(){ resize(); last=performance.now(); if (!raf) raf=requestAnimationFrame(loop); setTimeout(()=>cv.focus(),60); }
+  function hide(){ pause(); if (raf) cancelAnimationFrame(raf); raf=null; }
+  function reset(){ st=fresh(); }
+  window.addEventListener("resize", () => { if (raf) resize(); });
+  return {show, hide, pause, togglePause, reset, start};
+})();
+
+/* ---------- Start ---------- */
+(async function boot(){
+  await initFolder();
+  openGate();
+})();
+</script>
+</body>
+</html>
